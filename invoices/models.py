@@ -107,13 +107,20 @@ class Invoice(models.Model):
             year = self.issue_date.year if self.issue_date else datetime.date.today().year
             prefix = f'INV-{year}-'
             with transaction.atomic():
-                last = (
+                nums = list(
                     Invoice.objects
                     .filter(invoice_number__startswith=prefix)
                     .select_for_update()
-                    .count()
+                    .values_list('invoice_number', flat=True)
                 )
-                self.invoice_number = f'{prefix}{str(last + 1).zfill(3)}'
+                existing = []
+                for n in nums:
+                    try:
+                        existing.append(int(n[len(prefix):]))
+                    except (ValueError, IndexError):
+                        pass
+                next_num = (max(existing) + 1) if existing else 1
+                self.invoice_number = f'{prefix}{str(next_num).zfill(3)}'
         super().save(*args, **kwargs)
 
     @property

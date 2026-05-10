@@ -117,6 +117,17 @@ class InvoiceViewSet(viewsets.ModelViewSet):
             status=status.HTTP_201_CREATED,
         )
 
+    @action(detail=False, methods=['get'])
+    def recent_items(self, request):
+        from django.db.models import Max
+        items = (
+            InvoiceItem.objects
+            .values('description_en', 'description_ar', 'category', 'unit_price', 'currency', 'exchange_rate')
+            .annotate(last_used=Max('invoice__issue_date'))
+            .order_by('-last_used')[:60]
+        )
+        return Response(list(items))
+
     @action(detail=True, methods=['get'])
     def pdf(self, request, pk=None):
         invoice = self.get_object()

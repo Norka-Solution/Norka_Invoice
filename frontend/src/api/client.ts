@@ -72,6 +72,7 @@ export const invoicesApi = {
   cancel:    (id: string)             => api.post(`/invoices/${id}/cancel/`),
   duplicate: (id: string)             => api.post(`/invoices/${id}/duplicate/`),
   pdf:       (id: string)             => api.get(`/invoices/${id}/pdf/`, { responseType: 'blob' }),
+  recentItems: ()                    => api.get('/invoices/recent-items/'),
 }
 
 export const paymentsApi = {

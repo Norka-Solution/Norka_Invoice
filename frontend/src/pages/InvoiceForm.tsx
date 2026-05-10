@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { invoicesApi, clientsApi, companiesApi } from '../api/client'
@@ -48,7 +48,32 @@ export default function InvoiceForm() {
     vat_enabled: false, vat_rate: '5.00',
     notes_en: '', notes_ar: '', bank_details: '',
   })
-  const [items, setItems] = useState<InvoiceItem[]>([EMPTY_ITEM()])
+  const [items, setItems]           = useState<InvoiceItem[]>([EMPTY_ITEM()])
+  const [showPicker, setShowPicker] = useState(false)
+  const [pickerSearch, setPickerSearch] = useState('')
+  const pickerRef = useRef<HTMLDivElement>(null)
+
+  const { data: recentRaw } = useQuery<unknown[]>({
+    queryKey: ['recent-items'],
+    queryFn:  () => invoicesApi.recentItems().then(r => r.data),
+  })
+
+  useEffect(() => {
+    if (!showPicker) return
+    function handleClick(e: MouseEvent) {
+      if (pickerRef.current && !pickerRef.current.contains(e.target as Node)) {
+        setShowPicker(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [showPicker])
+
+  type RecentItem = { description_en: string; description_ar: string; category: string; unit_price: string | number; currency: string; exchange_rate: string | number }
+  const recentItems: RecentItem[] = Array.isArray(recentRaw) ? recentRaw as RecentItem[] : []
+  const filteredRecent = pickerSearch
+    ? recentItems.filter(r => r.description_en.toLowerCase().includes(pickerSearch.toLowerCase()))
+    : recentItems
 
   const companyList = companies?.results ?? []
   const clientList  = clients?.results  ?? []
@@ -184,12 +209,66 @@ export default function InvoiceForm() {
       <div className="bg-white border border-[#E5DFD6] rounded-2xl overflow-hidden">
         <div className="px-6 py-4 border-b border-[#E5DFD6] flex items-center justify-between">
           <p className="text-[10px] font-semibold text-[#A39890] uppercase tracking-widest">Line Items</p>
-          <button
-            onClick={() => setItems(p => [...p, EMPTY_ITEM()])}
-            className="px-3 py-1.5 bg-white border border-[#E5DFD6] text-[#1A1714] text-xs font-medium rounded-lg hover:bg-[#F3F0EB] transition-colors"
-          >
-            + Add Item
-          </button>
+          <div className="flex items-center gap-2">
+            {/* Previous items picker */}
+            <div className="relative" ref={pickerRef}>
+              <button
+                onClick={() => { setShowPicker(p => !p); setPickerSearch('') }}
+                className="px-3 py-1.5 bg-white border border-[#E5DFD6] text-[#6B6259] text-xs font-medium rounded-lg hover:bg-[#F3F0EB] transition-colors"
+              >
+                From Previous
+              </button>
+              {showPicker && (
+                <div className="absolute right-0 top-full mt-1 z-50 w-80 bg-white border border-[#E5DFD6] rounded-xl shadow-lg overflow-hidden">
+                  <div className="p-2 border-b border-[#F3F0EB]">
+                    <input
+                      autoFocus
+                      className="input text-sm w-full"
+                      placeholder="Search previous items…"
+                      value={pickerSearch}
+                      onChange={e => setPickerSearch(e.target.value)}
+                    />
+                  </div>
+                  <div className="max-h-64 overflow-y-auto">
+                    {filteredRecent.length === 0 ? (
+                      <p className="text-xs text-[#A39890] p-4 text-center">No previous items found</p>
+                    ) : filteredRecent.map((r, i) => (
+                      <button
+                        key={i}
+                        onClick={() => {
+                          setItems(p => [...p, {
+                            description_en: r.description_en,
+                            description_ar: r.description_ar,
+                            quantity: 1,
+                            unit_price: Number(r.unit_price),
+                            currency: r.currency as ItemCurrency,
+                            exchange_rate: Number(r.exchange_rate),
+                            category: r.category as ItemCategory,
+                            sort_order: 0,
+                          }])
+                          setShowPicker(false)
+                          setPickerSearch('')
+                        }}
+                        className="w-full text-left px-4 py-2.5 hover:bg-[#FAFAF8] border-b border-[#F3F0EB] last:border-0 transition-colors"
+                      >
+                        <div className="text-sm font-medium text-[#1A1714] truncate">{r.description_en}</div>
+                        <div className="flex gap-3 mt-0.5 text-xs text-[#A39890]">
+                          <span>{CATEGORIES.find(c => c.value === r.category)?.label ?? r.category}</span>
+                          <span>AED {fmtAmount(Number(r.unit_price))}</span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+            <button
+              onClick={() => setItems(p => [...p, EMPTY_ITEM()])}
+              className="px-3 py-1.5 bg-white border border-[#E5DFD6] text-[#1A1714] text-xs font-medium rounded-lg hover:bg-[#F3F0EB] transition-colors"
+            >
+              + Add Item
+            </button>
+          </div>
         </div>
 
         <div className="overflow-x-auto">
