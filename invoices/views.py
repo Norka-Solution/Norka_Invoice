@@ -187,16 +187,43 @@ class DashboardView(APIView):
         today = datetime.date.today()
         first_day = today.replace(day=1)
         invoices = Invoice.objects.all()
-        paid_this_month = Payment.objects.filter(payment_date__gte=first_day)
+
+        paid_this_month = float(
+            Payment.objects.filter(payment_date__gte=first_day)
+            .aggregate(s=Sum('amount'))['s'] or 0
+        )
+
+        total_outstanding = float(
+            sum(inv.balance_due for inv in
+                Invoice.objects.filter(status__in=['sent', 'partially_paid', 'overdue'])
+                .prefetch_related('items', 'payments'))
+        )
+
+        # Last 6 months revenue
+        monthly = []
+        for i in range(5, -1, -1):
+            d = today.replace(day=1) - datetime.timedelta(days=i * 28)
+            d = d.replace(day=1)
+            if d.month == 12:
+                next_m = d.replace(year=d.year + 1, month=1, day=1)
+            else:
+                next_m = d.replace(month=d.month + 1, day=1)
+            amt = float(
+                Payment.objects.filter(payment_date__gte=d, payment_date__lt=next_m)
+                .aggregate(s=Sum('amount'))['s'] or 0
+            )
+            monthly.append({'month': d.strftime('%b'), 'amount': amt})
+
         return Response({
-            'total_invoices':  invoices.count(),
-            'draft_count':     invoices.filter(status='draft').count(),
-            'sent_count':      invoices.filter(status='sent').count(),
-            'paid_count':      invoices.filter(status='paid').count(),
-            'overdue_count':   invoices.filter(status='overdue').count(),
-            'paid_this_month': float(
-                paid_this_month.aggregate(s=Sum('amount'))['s'] or 0
-            ),
+            'total_invoices':    invoices.count(),
+            'draft_count':       invoices.filter(status='draft').count(),
+            'sent_count':        invoices.filter(status='sent').count(),
+            'paid_count':        invoices.filter(status='paid').count(),
+            'overdue_count':     invoices.filter(status='overdue').count(),
+            'partially_paid_count': invoices.filter(status='partially_paid').count(),
+            'paid_this_month':   paid_this_month,
+            'total_outstanding': total_outstanding,
+            'monthly_revenue':   monthly,
         })
 
 

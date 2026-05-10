@@ -110,13 +110,21 @@ export interface PaginatedResponse<T> {
   results: T[]
 }
 
+export interface MonthlyRevenue {
+  month: string
+  amount: number
+}
+
 export interface DashboardStats {
   total_invoices: number
   draft_count: number
   sent_count: number
   paid_count: number
   overdue_count: number
+  partially_paid_count: number
   paid_this_month: number
+  total_outstanding: number
+  monthly_revenue: MonthlyRevenue[]
 }
 
 export interface AuthTokens {
