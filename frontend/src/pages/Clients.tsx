@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { clientsApi, companiesApi } from '../api/client'
 import type { Client, Company, PaginatedResponse } from '../types'
@@ -14,12 +14,25 @@ function initials(name: string) {
   return name.split(' ').slice(0, 2).map(w => w[0]?.toUpperCase() ?? '').join('')
 }
 
+function IndeterminateCheckbox({ checked, indeterminate, onChange }: {
+  checked: boolean; indeterminate: boolean; onChange: () => void
+}) {
+  const ref = useRef<HTMLInputElement>(null)
+  useEffect(() => { if (ref.current) ref.current.indeterminate = indeterminate }, [indeterminate])
+  return (
+    <input ref={ref} type="checkbox" checked={checked} onChange={onChange}
+      className="w-3.5 h-3.5 accent-[#1A1714] cursor-pointer" />
+  )
+}
+
 export default function Clients() {
   const qc = useQueryClient()
-  const [editing, setEditing]       = useState<Partial<Client> | null>(null)
-  const [isNew, setIsNew]           = useState(false)
-  const [search, setSearch]         = useState('')
+  const [editing, setEditing]           = useState<Partial<Client> | null>(null)
+  const [isNew, setIsNew]               = useState(false)
+  const [search, setSearch]             = useState('')
   const [deleteTarget, setDeleteTarget] = useState<Client | null>(null)
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false)
+  const [selected, setSelected]         = useState<Set<string>>(new Set())
 
   const { data: compData } = useQuery<{ results: Company[] }>({
     queryKey: ['companies'],
@@ -33,22 +46,30 @@ export default function Clients() {
 
   const saveMut = useMutation({
     mutationFn: (c: Partial<Client>) => c.id ? clientsApi.update(c.id, c) : clientsApi.create(c),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['clients'] })
-      toast.success('Client saved')
-      setEditing(null); setIsNew(false)
-    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['clients'] }); toast.success('Client saved'); setEditing(null); setIsNew(false) },
     onError: () => toast.error('Error saving client'),
   })
 
   const delMut = useMutation({
     mutationFn: (id: string) => clientsApi.delete(id),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['clients'] }); toast.success('Client deleted'); setDeleteTarget(null) },
+    onError: () => { toast.error('Cannot delete — client has invoices'); setDeleteTarget(null) },
+  })
+
+  const bulkDelMut = useMutation({
+    mutationFn: (ids: string[]) => Promise.all(ids.map(id => clientsApi.delete(id))),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['clients'] })
-      toast.success('Client deleted')
-      setDeleteTarget(null)
+      setSelected(new Set())
+      setBulkDeleteOpen(false)
+      toast.success('Deleted')
     },
-    onError: () => { toast.error('Cannot delete — client has invoices'); setDeleteTarget(null) },
+    onError: () => {
+      qc.invalidateQueries({ queryKey: ['clients'] })
+      setSelected(new Set())
+      setBulkDeleteOpen(false)
+      toast.error('Some clients could not be deleted (have invoices)')
+    },
   })
 
   const companies  = compData?.results ?? []
@@ -60,23 +81,52 @@ export default function Clients() {
       )
     : allClients
 
+  const allSelected  = clients.length > 0 && clients.every(c => selected.has(c.id))
+  const someSelected = clients.some(c => selected.has(c.id)) && !allSelected
+  const selCount     = clients.filter(c => selected.has(c.id)).length
+
+  function toggleAll() {
+    setSelected(prev => {
+      const n = new Set(prev)
+      allSelected ? clients.forEach(c => n.delete(c.id)) : clients.forEach(c => n.add(c.id))
+      return n
+    })
+  }
+
+  function toggleOne(id: string, e: React.MouseEvent) {
+    e.stopPropagation()
+    setSelected(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n })
+  }
+
   function openNew() {
-    setEditing({ ...EMPTY(), company: companies[0]?.id ?? '', name_ar: '' })
+    setEditing({ ...EMPTY(), company: companies[0]?.id ?? '' })
     setIsNew(true)
+    setSelected(new Set())
+  }
+
+  function openEdit(c: Client, e: React.MouseEvent) {
+    e.stopPropagation()
+    setEditing({ ...c })
+    setIsNew(false)
   }
 
   return (
     <div className="space-y-5">
 
       {deleteTarget && (
-        <Modal
-          title="Delete Client"
+        <Modal title="Delete Client"
           message={`Delete "${deleteTarget.name_en}"? This cannot be undone.`}
-          confirmLabel="Delete"
-          danger
+          confirmLabel="Delete" danger
           onConfirm={() => delMut.mutate(deleteTarget.id)}
-          onCancel={() => setDeleteTarget(null)}
-        />
+          onCancel={() => setDeleteTarget(null)} />
+      )}
+
+      {bulkDeleteOpen && (
+        <Modal title="Delete Clients"
+          message={`Delete ${selCount} selected client${selCount > 1 ? 's' : ''}? Clients with invoices cannot be deleted.`}
+          confirmLabel="Delete" danger
+          onConfirm={() => bulkDelMut.mutate(clients.filter(c => selected.has(c.id)).map(c => c.id))}
+          onCancel={() => setBulkDeleteOpen(false)} />
       )}
 
       {/* Header */}
@@ -85,10 +135,8 @@ export default function Clients() {
           <h1 className="text-xl font-bold text-[#1A1714] tracking-tight">Clients</h1>
           <p className="text-xs text-[#A39890] mt-0.5">{allClients.length} total</p>
         </div>
-        <button
-          onClick={openNew}
-          className="px-4 py-2 bg-[#1A1714] text-white text-sm font-medium rounded-lg hover:bg-[#2C2825] transition-colors"
-        >
+        <button onClick={openNew}
+          className="px-4 py-2 bg-[#1A1714] text-white text-sm font-medium rounded-lg hover:bg-[#2C2825] transition-colors">
           + New Client
         </button>
       </div>
@@ -97,7 +145,7 @@ export default function Clients() {
       {editing && (
         <div className="bg-white border border-[#E5DFD6] rounded-2xl p-6">
           <p className="text-sm font-semibold text-[#1A1714] mb-5">
-            {isNew ? 'New Client' : 'Edit Client'}
+            {isNew ? 'New Client' : `Edit — ${editing.name_en}`}
           </p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
@@ -135,14 +183,11 @@ export default function Clients() {
             <button
               onClick={() => saveMut.mutate(editing!)}
               disabled={saveMut.isPending || !editing.name_en}
-              className="px-4 py-2 bg-[#1A1714] text-white text-sm font-medium rounded-lg hover:bg-[#2C2825] transition-colors disabled:opacity-40"
-            >
+              className="px-4 py-2 bg-[#1A1714] text-white text-sm font-medium rounded-lg hover:bg-[#2C2825] transition-colors disabled:opacity-40">
               {saveMut.isPending ? 'Saving…' : 'Save Client'}
             </button>
-            <button
-              onClick={() => { setEditing(null); setIsNew(false) }}
-              className="px-4 py-2 bg-white border border-[#E5DFD6] text-[#6B6259] text-sm font-medium rounded-lg hover:bg-[#F3F0EB] transition-colors"
-            >
+            <button onClick={() => { setEditing(null); setIsNew(false) }}
+              className="px-4 py-2 bg-white border border-[#E5DFD6] text-[#6B6259] text-sm font-medium rounded-lg hover:bg-[#F3F0EB] transition-colors">
               Cancel
             </button>
           </div>
@@ -151,16 +196,31 @@ export default function Clients() {
 
       {/* Search */}
       <div className="bg-white border border-[#E5DFD6] rounded-2xl p-3">
-        <input
-          className="input border-0 focus:ring-0 bg-transparent"
+        <input className="input border-0 focus:ring-0 bg-transparent"
           placeholder="Search by name, email, or contact…"
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-        />
+          value={search} onChange={e => setSearch(e.target.value)} />
       </div>
 
       {/* Table */}
       <div className="bg-white border border-[#E5DFD6] rounded-2xl overflow-hidden">
+
+        {/* Bulk action bar */}
+        {selCount > 0 && (
+          <div className="px-4 py-2.5 bg-[#1A1714] flex items-center justify-between">
+            <span className="text-sm font-medium text-white">{selCount} selected</span>
+            <div className="flex items-center gap-4 text-xs">
+              <button onClick={() => setBulkDeleteOpen(true)}
+                className="text-[#F5EBEB] hover:text-white font-medium transition-colors">
+                Delete selected
+              </button>
+              <button onClick={() => setSelected(new Set())}
+                className="text-[#A39890] hover:text-white transition-colors">
+                Deselect all
+              </button>
+            </div>
+          </div>
+        )}
+
         {isLoading ? (
           <div className="flex justify-center items-center p-16"><div className="spinner" /></div>
         ) : clients.length === 0 ? (
@@ -169,10 +229,8 @@ export default function Clients() {
               {search ? 'No clients match your search' : 'No clients yet'}
             </p>
             {!search && (
-              <button
-                onClick={openNew}
-                className="mt-4 px-4 py-2 bg-[#1A1714] text-white text-sm font-medium rounded-lg hover:bg-[#2C2825] transition-colors"
-              >
+              <button onClick={openNew}
+                className="mt-4 px-4 py-2 bg-[#1A1714] text-white text-sm font-medium rounded-lg hover:bg-[#2C2825] transition-colors">
                 Add First Client
               </button>
             )}
@@ -181,6 +239,9 @@ export default function Clients() {
           <div className="overflow-x-auto">
             <table className="tbl min-w-[640px]">
               <thead><tr>
+                <th className="w-10 px-4">
+                  <IndeterminateCheckbox checked={allSelected} indeterminate={someSelected} onChange={toggleAll} />
+                </th>
                 <th>Client</th>
                 <th>Contact</th>
                 <th>Email</th>
@@ -189,43 +250,48 @@ export default function Clients() {
                 <th className="text-right">Actions</th>
               </tr></thead>
               <tbody>
-                {clients.map(c => (
-                  <tr key={c.id}>
-                    <td>
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-[#F3F0EB] flex items-center justify-center flex-shrink-0">
-                          <span className="text-xs font-bold text-[#6B6259]">{initials(c.name_en)}</span>
+                {clients.map(c => {
+                  const isSel = selected.has(c.id)
+                  return (
+                    <tr key={c.id}
+                      onClick={e => openEdit(c, e)}
+                      className={`cursor-pointer transition-colors ${isSel ? 'bg-[#F8F5F0]' : 'hover:bg-[#FAFAF8]'}`}>
+                      <td className="w-10 px-4" onClick={e => toggleOne(c.id, e)}>
+                        <input type="checkbox" checked={isSel} onChange={() => {}}
+                          className="w-3.5 h-3.5 accent-[#1A1714] cursor-pointer" />
+                      </td>
+                      <td>
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-lg bg-[#F3F0EB] flex items-center justify-center flex-shrink-0">
+                            <span className="text-xs font-bold text-[#6B6259]">{initials(c.name_en)}</span>
+                          </div>
+                          <span className="font-medium text-[#1A1714] text-sm">{c.name_en}</span>
                         </div>
-                        <span className="font-medium text-[#1A1714] text-sm">{c.name_en}</span>
-                      </div>
-                    </td>
-                    <td className="text-[#6B6259] text-sm">{c.contact_person || <span className="text-[#CEC8BE]">—</span>}</td>
-                    <td>
-                      {c.email
-                        ? <a href={`mailto:${c.email}`} className="text-sm text-[#3A5F8B] hover:underline">{c.email}</a>
-                        : <span className="text-[#CEC8BE]">—</span>
-                      }
-                    </td>
-                    <td className="text-[#6B6259] text-sm">{c.phone || <span className="text-[#CEC8BE]">—</span>}</td>
-                    <td className="font-mono text-xs text-[#A39890]">{c.trn || <span className="text-[#CEC8BE]">—</span>}</td>
-                    <td>
-                      <div className="flex items-center justify-end gap-3 text-xs">
-                        <button
-                          onClick={() => { setEditing({ ...c }); setIsNew(false) }}
-                          className="text-[#6B6259] hover:text-[#1A1714] font-medium transition-colors"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => setDeleteTarget(c)}
-                          className="text-[#8B3A3A] font-medium hover:underline"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                      <td className="text-[#6B6259] text-sm">{c.contact_person || <span className="text-[#CEC8BE]">—</span>}</td>
+                      <td>
+                        {c.email
+                          ? <a href={`mailto:${c.email}`} onClick={e => e.stopPropagation()}
+                              className="text-sm text-[#3A5F8B] hover:underline">{c.email}</a>
+                          : <span className="text-[#CEC8BE]">—</span>}
+                      </td>
+                      <td className="text-[#6B6259] text-sm">{c.phone || <span className="text-[#CEC8BE]">—</span>}</td>
+                      <td className="font-mono text-xs text-[#A39890]">{c.trn || <span className="text-[#CEC8BE]">—</span>}</td>
+                      <td onClick={e => e.stopPropagation()}>
+                        <div className="flex items-center justify-end gap-3 text-xs">
+                          <button onClick={e => openEdit(c, e)}
+                            className="text-[#6B6259] hover:text-[#1A1714] font-medium transition-colors">
+                            Edit
+                          </button>
+                          <button onClick={e => { e.stopPropagation(); setDeleteTarget(c) }}
+                            className="text-[#8B3A3A] font-medium hover:underline">
+                            Delete
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                })}
               </tbody>
             </table>
           </div>
