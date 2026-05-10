@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: 'Segoe UI', Arial, 'Noto Sans Arabic', Helvetica, sans-serif;
+  font-size:11px; color:#1a1a1a; background:#fff;
+}
+.page {
+  width:210mm; min-height:297mm;
+  padding:14mm 15mm;
+  display:flex; flex-direction:column;
+}
+
+/* ── Header ── */
+.header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:20px; }
+.hdr-left { display:flex; gap:14px; align-items:flex-start; }
+.logo-box {
+  width:64px; height:64px; border:1.5px solid #dde3ef; border-radius:10px;
+  display:flex; align-items:center; justify-content:center;
+  background:#f8f9fc; flex-shrink:0;
+  font-size:28px; font-weight:900; color:#004aad;
+}
+.co-name { font-size:17px; font-weight:900; color:#004aad; letter-spacing:.3px; }
+.co-name-ar { font-size:11px; font-weight:700; color:#004aad; margin-top:2px; direction:rtl; }
+.co-sub { font-size:9px; color:#888; margin-top:4px; }
+.hdr-right { text-align:right; }
+.inv-title { font-size:40px; font-weight:900; color:#1a1a1a; line-height:1; letter-spacing:-1px; }
+.inv-title-ar { font-size:17px; font-weight:700; color:#555; margin-top:3px; }
+.inv-badge {
+  display:inline-block; margin-top:8px;
+  background:#f0f4f8; border:1px solid #dde3ef; border-radius:20px;
+  padding:4px 14px; font-size:10px; color:#555;
+}
+
+/* ── Gradient divider ── */
+.divider {
+  height:2px;
+  background:linear-gradient(to right, #004aad 40%, #e8edf5);
+  margin-bottom:18px;
+}
+
+/* ── Info Grid ── */
+.info-grid { display:flex; gap:20px; margin-bottom:18px; }
+.info-left { flex:1; border-right:1px solid #eee; padding-right:20px; }
+.info-row { display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid #f5f5f5; }
+.info-row.last { border-bottom:none; }
+.info-label { font-size:9px; color:#999; }
+.info-value { font-size:11px; font-weight:700; }
+.status-badge {
+  display:inline-flex; align-items:center; gap:5px;
+  border-radius:20px; padding:3px 10px;
+  font-size:10px; font-weight:700;
+}
+.status-dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; display:inline-block; }
+.s-draft          { background:#f3f4f6; color:#6b7280; }
+.s-draft .dot     { background:#9ca3af; }
+.s-sent           { background:#dbeafe; color:#1d4ed8; }
+.s-sent .dot      { background:#3b82f6; }
+.s-paid           { background:#dcfce7; color:#15803d; }
+.s-paid .dot      { background:#22c55e; }
+.s-partially_paid { background:#fef3c7; color:#92400e; }
+.s-partially_paid .dot { background:#f59e0b; }
+.s-overdue        { background:#fee2e2; color:#991b1b; }
+.s-overdue .dot   { background:#ef4444; }
+.s-cancelled      { background:#f3f4f6; color:#6b7280; }
+.s-cancelled .dot { background:#9ca3af; }
+
+.info-right { width:210px; flex-shrink:0; }
+.sub-label { font-size:9px; font-weight:700; color:#004aad; text-transform:uppercase; letter-spacing:1px; margin-bottom:6px; }
+.client-name { font-size:15px; font-weight:900; }
+.client-name-ar { font-size:12px; font-weight:700; color:#555; margin-top:2px; direction:rtl; }
+.client-line { font-size:9px; color:#777; margin-top:2px; line-height:1.5; }
+.from-block { margin-top:16px; padding-top:10px; border-top:1px solid #f0f0f0; }
+.from-name { font-size:11px; font-weight:700; }
+.from-name-ar { font-size:10px; color:#555; margin-top:1px; }
+.from-line { font-size:9px; color:#777; }
+.from-link { font-size:9px; color:#004aad; }
+
+/* ── Stats Bar ── */
+.stats-bar {
+  border:1px solid #e8edf5; border-radius:10px;
+  display:flex; margin-bottom:22px; background:#fafbff; overflow:hidden;
+}
+.stat-cell { flex:1; text-align:center; padding:14px 8px; border-right:1px solid #e8edf5; }
+.stat-cell.last { border-right:none; background:#004aad; }
+.stat-value { font-size:15px; font-weight:900; color:#1a1a1a; }
+.stat-cell.last .stat-value { color:#fff; }
+.stat-label { font-size:8px; color:#888; margin-top:3px; }
+.stat-cell.last .stat-label { color:rgba(255,255,255,.85); }
+.stat-label-ar { font-size:8px; color:#bbb; }
+.stat-cell.last .stat-label-ar { color:rgba(255,255,255,.6); }
+
+/* ── Table section ── */
+.section-title {
+  display:flex; justify-content:space-between;
+  margin-bottom:8px;
+  font-size:10px; font-weight:700; color:#004aad; letter-spacing:.3px;
+}
+.items-tbl { width:100%; border-collapse:collapse; margin-bottom:4px; }
+.items-tbl thead tr { border-bottom:2px solid #e8edf5; }
+.items-tbl thead th {
+  padding:7px 8px; font-size:9px; font-weight:700; color:#555;
+  text-transform:uppercase; letter-spacing:.5px; text-align:left;
+  border-bottom:2px solid #e8edf5;
+}
+.items-tbl thead th.right { text-align:right; }
+
+/* Category header row */
+.cat-row td {
+  padding:7px 10px; background:#f0f5ff;
+}
+.cat-inner {
+  display:flex; align-items:center; justify-content:flex-end; gap:8px;
+}
+.cat-name { font-size:11px; font-weight:700; }
+.cat-circle {
+  width:24px; height:24px; border-radius:50%; flex-shrink:0;
+  display:inline-flex; align-items:center; justify-content:center;
+  font-size:11px; font-weight:900; color:#fff;
+}
+.grp-0 { background:#004aad; }
+.grp-1 { background:#0ea5e9; }
+.grp-2 { background:#8b5cf6; }
+.grp-3 { background:#f59e0b; }
+.grp-4 { background:#10b981; }
+.grp-5 { background:#ef4444; }
+
+/* Item rows */
+.items-tbl tbody tr.item-row { border-bottom:1px solid #f0f0f0; }
+.items-tbl tbody td { padding:8px 8px; }
+.item-num { font-size:10px; color:#aaa; width:28px; }
+.item-desc-en { font-weight:600; font-size:10px; }
+.item-desc-ar { font-size:9px; color:#888; margin-top:2px; direction:rtl; }
+.item-orig { font-size:8px; color:#bbb; margin-top:1px; font-style:italic; }
+.item-detail { font-size:9px; color:#777; }
+.item-qty { font-size:10px; text-align:right; width:40px; }
+.item-total { font-size:10px; font-weight:700; text-align:right; width:90px; }
+
+/* ── Totals ── */
+.totals-wrap { display:flex; justify-content:flex-end; margin:10px 0 22px; }
+.totals-box { width:230px; }
+.total-row { display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid #eee; font-size:10px; }
+.total-row.vat { color:#666; }
+.total-due {
+  display:flex; justify-content:space-between;
+  background:#004aad; color:#fff;
+  padding:8px 12px; border-radius:6px; margin-top:6px;
+  font-weight:900; font-size:13px;
+}
+.total-paid { display:flex; justify-content:space-between; padding:4px 0; margin-top:5px; font-size:10px; color:#15803d; }
+.total-balance { display:flex; justify-content:space-between; padding:3px 0; font-size:11px; font-weight:700; color:#991b1b; }
+
+/* ── Bank Details ── */
+.bank-box {
+  border:1px solid #e8edf5; border-radius:8px;
+  padding:10px 14px; margin-bottom:20px; background:#fafbff;
+}
+.bank-title { font-size:9px; font-weight:700; color:#004aad; text-transform:uppercase; letter-spacing:.5px; margin-bottom:8px; }
+.bank-fields { display:flex; flex-wrap:wrap; gap:18px; }
+.bank-field-label { font-size:7px; color:#aaa; text-transform:uppercase; letter-spacing:.5px; }
+.bank-field-value { font-size:10px; font-weight:600; }
+
+/* ── Payment History ── */
+.payments-title { font-size:9px; font-weight:700; color:#15803d; margin-bottom:6px; }
+.pay-tbl { width:100%; border-collapse:collapse; margin-bottom:20px; }
+.pay-tbl thead tr { background:#dcfce7; }
+.pay-tbl thead th { padding:4px 8px; font-size:8px; color:#15803d; text-align:left; }
+.pay-tbl thead th.right { text-align:right; }
+.pay-tbl tbody tr:nth-child(even) { background:#f6fdf8; }
+.pay-tbl tbody td { padding:4px 8px; font-size:9px; }
+.pay-tbl tbody td.right { text-align:right; font-weight:600; }
+
+/* ── Notes + Signature ── */
+.notes-sig { display:flex; gap:20px; margin-bottom:24px; align-items:flex-start; }
+.notes-block { flex:1; }
+.notes-title { font-size:11px; font-weight:700; margin-bottom:6px; }
+.notes-ar { font-size:10px; color:#444; line-height:1.7; margin-bottom:4px; direction:rtl; }
+.notes-en { font-size:10px; color:#444; line-height:1.7; }
+.sig-block { width:170px; text-align:center; flex-shrink:0; }
+.sig-label { font-size:9px; color:#888; margin-bottom:4px; }
+.sig-line { height:40px; border-bottom:1px solid #bbb; margin-bottom:8px; }
+.sig-name { font-size:10px; font-weight:700; }
+
+/* ── Footer ── */
+.footer {
+  margin-top:auto; border-top:1.5px solid #e8edf5; padding-top:8px;
+  display:flex; justify-content:space-between; align-items:center;
+  font-size:8px; color:#999;
+}
+.footer-link { color:#004aad; }
+
+@media print {
+  body { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  .page { padding:10mm 12mm; }
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- ══════════════════ HEADER ══════════════════ -->
+  <div class="header">
+    <div class="hdr-left">
+      <div class="logo-box">
+        {% if invoice.company.logo %}
+          <img src="{{ invoice.company.logo.url }}" alt="logo" style="width:100%;height:100%;object-fit:contain;border-radius:8px;">
+        {% else %}
+          N
+        {% endif %}
+      </div>
+      <div style="padding-top:6px;">
+        <div class="co-name">{{ invoice.company.name_en|default:"NORKA SOLUTION" }}</div>
+        <div class="co-name-ar">{{ invoice.company.name_ar|default:"نوركا سوليونش" }}</div>
+        <div class="co-sub">IT Services &amp; Digital Solutions</div>
+      </div>
+    </div>
+    <div class="hdr-right">
+      <div class="inv-title">INVOICE</div>
+      <div class="inv-title-ar">فاتورة خدمات</div>
+      <div class="inv-badge">{{ invoice.invoice_number }} &nbsp;|&nbsp; {{ invoice.issue_date }}</div>
+    </div>
+  </div>
+
+  <!-- Gradient divider -->
+  <div class="divider"></div>
+
+  <!-- ══════════════════ INFO GRID ══════════════════ -->
+  <div class="info-grid">
+
+    <!-- Left: metadata -->
+    <div class="info-left">
+      <div class="info-row">
+        <span class="info-label">Invoice No. | رقم الفاتورة</span>
+        <span class="info-value">{{ invoice.invoice_number }}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Issue Date | تاريخ الإصدار</span>
+        <span class="info-value">{{ invoice.issue_date }}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Due Date | تاريخ الاستحقاق</span>
+        <span class="info-value">{{ invoice.due_date }}</span>
+      </div>
+      {% if invoice.period_start and invoice.period_end %}
+      <div class="info-row">
+        <span class="info-label">Period | الفترة</span>
+        <span class="info-value">{{ invoice.period_start }} – {{ invoice.period_end }}</span>
+      </div>
+      {% endif %}
+      <div class="info-row">
+        <span class="info-label">Items | عدد البنود</span>
+        <span class="info-value">{{ invoice.items.count }} Items</span>
+      </div>
+      <div class="info-row last">
+        <span class="info-label">Status | الحالة</span>
+        <span class="status-badge s-{{ invoice.status }}">
+          <span class="status-dot dot"></span>
+          {% if invoice.status == 'draft' %}مسودة · Draft
+          {% elif invoice.status == 'sent' %}مُرسلة · Sent
+          {% elif invoice.status == 'paid' %}مدفوعة · Paid
+          {% elif invoice.status == 'partially_paid' %}جزئي · Partial Pay
+          {% elif invoice.status == 'overdue' %}متأخرة · Overdue
+          {% elif invoice.status == 'cancelled' %}ملغاة · Cancelled
+          {% endif %}
+        </span>
+      </div>
+    </div>
+
+    <!-- Right: client + from -->
+    <div class="info-right">
+      <div class="sub-label">SUBMITTED TO &nbsp;|&nbsp; مقدَّم إلى</div>
+      <div class="client-name">{{ invoice.client.name_en }}</div>
+      {% if invoice.client.name_ar %}
+        <div class="client-name-ar">{{ invoice.client.name_ar }}</div>
+      {% endif %}
+      {% if invoice.client.address_en %}
+        <div class="client-line">{{ invoice.client.address_en }}</div>
+      {% endif %}
+      {% if invoice.client.address_ar %}
+        <div class="client-line" style="direction:rtl;">{{ invoice.client.address_ar }}</div>
+      {% endif %}
+      {% if invoice.client.phone %}
+        <div class="client-line">Tel: {{ invoice.client.phone }}</div>
+      {% endif %}
+      {% if invoice.client.trn %}
+        <div class="client-line">TRN: {{ invoice.client.trn }}</div>
+      {% endif %}
+
+      <div class="from-block">
+        <div class="sub-label" style="margin-bottom:4px;">FROM &nbsp;|&nbsp; من</div>
+        <div class="from-name">{{ invoice.company.name_en|default:"NORKA SOLUTION" }}</div>
+        <div class="from-name-ar">{{ invoice.company.name_ar|default:"نوركا سوليونش" }}</div>
+        <div class="from-line">Abu Dhabi, UAE &nbsp;|&nbsp; أبوظبي، الإمارات</div>
+        <div class="from-link">norka.solution</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════ STATS BAR ══════════════════ -->
+  <div class="stats-bar">
+    <div class="stat-cell">
+      <div class="stat-value">{{ invoice.items.count }}</div>
+      <div class="stat-label">Service Items</div>
+      <div class="stat-label-ar">بنود الخدمة</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-value">AED {{ invoice.subtotal_aed|floatformat:2 }}</div>
+      <div class="stat-label">Subtotal</div>
+      <div class="stat-label-ar">المجموع الفرعي</div>
+    </div>
+    <div class="stat-cell">
+      {% if invoice.vat_enabled %}
+        <div class="stat-value">AED {{ invoice.vat_amount|floatformat:2 }}</div>
+        <div class="stat-label">VAT {{ invoice.vat_rate }}%</div>
+      {% else %}
+        <div class="stat-value">—</div>
+        <div class="stat-label">No VAT</div>
+      {% endif %}
+      <div class="stat-label-ar">ضريبة القيمة</div>
+    </div>
+    <div class="stat-cell last">
+      <div class="stat-value">AED {{ invoice.total_aed|floatformat:2 }}</div>
+      <div class="stat-label">Total Due</div>
+      <div class="stat-label-ar">المجموع الكلي</div>
+    </div>
+  </div>
+
+  <!-- ══════════════════ ITEMS TABLE ══════════════════ -->
+  <div class="section-title">
+    <span>INVOICE ITEMS</span>
+    <span>بنود الفاتورة</span>
+  </div>
+
+  <table class="items-tbl">
+    <thead>
+      <tr>
+        <th style="width:28px;">#</th>
+        <th>TASK / المهمة</th>
+        <th>DETAILS</th>
+        <th class="right" style="width:40px;">QTY</th>
+        <th class="right" style="width:90px;">TOTAL (AED)</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for group in item_groups %}
+        <!-- Category header -->
+        <tr class="cat-row">
+          <td colspan="5">
+            <div class="cat-inner">
+              <span class="cat-name">{{ group.label_en }} · {{ group.label_ar }}</span>
+              <span class="cat-circle grp-{{ forloop.counter0 }}">{{ group.letter }}</span>
+            </div>
+          </td>
+        </tr>
+        <!-- Items in this group -->
+        {% for row in group.numbered_items %}
+          <tr class="item-row">
+            <td class="item-num">{{ row.num }}</td>
+            <td>
+              <div class="item-desc-en">{{ row.item.description_en }}</div>
+              {% if row.item.description_ar %}
+                <div class="item-desc-ar">{{ row.item.description_ar }}</div>
+              {% endif %}
+              {% if row.item.currency != 'AED' %}
+                <div class="item-orig">Original: {{ row.item.currency }} {{ row.item.unit_price }} × {{ row.item.exchange_rate }}</div>
+              {% endif %}
+            </td>
+            <td class="item-detail">{{ group.label_en }}</td>
+            <td class="item-qty">{{ row.item.quantity }}</td>
+            <td class="item-total">{{ row.item.total_aed|floatformat:2 }}</td>
+          </tr>
+        {% endfor %}
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <!-- ══════════════════ TOTALS ══════════════════ -->
+  <div class="totals-wrap">
+    <div class="totals-box">
+      <div class="total-row">
+        <span style="color:#888;">Subtotal</span>
+        <span>AED {{ invoice.subtotal_aed|floatformat:2 }}</span>
+      </div>
+      {% if invoice.vat_enabled %}
+      <div class="total-row vat">
+        <span>VAT ({{ invoice.vat_rate }}%)</span>
+        <span>AED {{ invoice.vat_amount|floatformat:2 }}</span>
+      </div>
+      {% endif %}
+      <div class="total-due">
+        <span>TOTAL DUE</span>
+        <span>AED {{ invoice.total_aed|floatformat:2 }}</span>
+      </div>
+      {% if invoice.total_paid > 0 %}
+      <div class="total-paid">
+        <span>Amount Paid</span>
+        <span>AED {{ invoice.total_paid|floatformat:2 }}</span>
+      </div>
+      <div class="total-balance">
+        <span>Balance Due</span>
+        <span>AED {{ invoice.balance_due|floatformat:2 }}</span>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- ══════════════════ BANK DETAILS ══════════════════ -->
+  {% if invoice.bank_details %}
+  <div class="bank-box">
+    <div class="bank-title">Payment Instructions — Bank Transfer</div>
+    <div class="bank-fields">
+      <div>
+        <div class="bank-field-label">Bank</div>
+        <div class="bank-field-value">{{ invoice.bank_details.bank_name }}</div>
+      </div>
+      <div>
+        <div class="bank-field-label">Account Name</div>
+        <div class="bank-field-value">{{ invoice.bank_details.account_name }}</div>
+      </div>
+      <div>
+        <div class="bank-field-label">Account No.</div>
+        <div class="bank-field-value">{{ invoice.bank_details.account_number }}</div>
+      </div>
+      <div>
+        <div class="bank-field-label">IBAN</div>
+        <div class="bank-field-value">{{ invoice.bank_details.iban }}</div>
+      </div>
+      <div>
+        <div class="bank-field-label">SWIFT</div>
+        <div class="bank-field-value">{{ invoice.bank_details.swift_code }}</div>
+      </div>
+      {% if invoice.bank_details.branch %}
+      <div>
+        <div class="bank-field-label">Branch</div>
+        <div class="bank-field-value">{{ invoice.bank_details.branch }}</div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- ══════════════════ PAYMENT HISTORY ══════════════════ -->
+  {% if invoice.payments.exists %}
+  <div class="payments-title">Payment History</div>
+  <table class="pay-tbl">
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Method</th>
+        <th>Reference</th>
+        <th class="right">Amount (AED)</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for payment in invoice.payments.all %}
+      <tr>
+        <td>{{ payment.payment_date }}</td>
+        <td style="text-transform:capitalize;">{{ payment.method|cut:"_" }}</td>
+        <td>{{ payment.reference|default:"—" }}</td>
+        <td class="right">{{ payment.amount|floatformat:2 }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+
+  <!-- ══════════════════ NOTES + SIGNATURE ══════════════════ -->
+  <div class="notes-sig">
+    <div class="notes-block">
+      {% if invoice.notes_en or invoice.notes_ar %}
+      <div class="notes-title">Notes &nbsp;|&nbsp; ملاحظات:</div>
+      {% if invoice.notes_ar %}
+        <div class="notes-ar">{{ invoice.notes_ar }}</div>
+      {% endif %}
+      {% if invoice.notes_en %}
+        <div class="notes-en">{{ invoice.notes_en }}</div>
+      {% endif %}
+      {% endif %}
+    </div>
+    <div class="sig-block">
+      <div class="sig-label">Authorized Signature &nbsp;|&nbsp; توقيع المفوَّض</div>
+      <div class="sig-line"></div>
+      <div class="sig-name">NORKA SOLUTION</div>
+    </div>
+  </div>
+
+  <!-- ══════════════════ FOOTER BAR ══════════════════ -->
+  <div class="footer">
+    <span>NORKA SOLUTION &nbsp;·&nbsp; <span class="footer-link">norka.solution</span> &nbsp;·&nbsp; Abu Dhabi, UAE</span>
+    <span>فاتورة خدمات &nbsp;·&nbsp; {{ invoice.invoice_number }}</span>
+  </div>
+
+</div>
+</body>
+</html>

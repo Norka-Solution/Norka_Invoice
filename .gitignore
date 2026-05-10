@@ -1,0 +1,57 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+venv/
+env/
+.venv/
+.env
+
+# Django
+db.sqlite3
+db.sqlite3-journal
+staticfiles/
+media/
+*.log
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-error.log
+.pnp/
+.pnp.js
+
+# Vite / Frontend build
+frontend/dist/
+frontend/.env
+frontend/.env.local
+frontend/.env.production
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Misc
+*.bak
+*.tmp
+*.pdf
+NORKA_INVOICE_SYSTEM_SETUP.ps1
+seed_data.py
+
+# Claude Code local settings
+.claude/
