@@ -98,7 +98,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
       {/* Sidebar */}
       <aside className={`
-        fixed top-0 left-0 h-full w-[220px] bg-white border-r border-[#E5DFD6] z-50
+        fixed top-0 left-0 h-full w-[220px] bg-[#F8F5F0] border-r border-[#E5DFD6] z-50
         transition-transform duration-200 ease-out
         ${mobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
       `}>
@@ -109,7 +109,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       <div className="flex-1 md:ml-[220px] flex flex-col min-h-screen">
 
         {/* Mobile top bar */}
-        <header className="md:hidden sticky top-0 z-30 bg-white border-b border-[#E5DFD6] h-12 flex items-center px-4 gap-3 flex-shrink-0">
+        <header className="md:hidden sticky top-0 z-30 bg-[#F8F5F0] border-b border-[#E5DFD6] h-12 flex items-center px-4 gap-3 flex-shrink-0">
           <button
             onClick={() => setMobileOpen(o => !o)}
             className="w-8 h-8 flex items-center justify-center rounded-md text-[#6B6259] hover:bg-[#F3F0EB] text-base"
