@@ -61,7 +61,7 @@ export default function Clients() {
     : allClients
 
   function openNew() {
-    setEditing({ ...EMPTY(), company: companies[0]?.id ?? '' })
+    setEditing({ ...EMPTY(), company: companies[0]?.id ?? '', name_ar: '' })
     setIsNew(true)
   }
 
@@ -101,14 +101,6 @@ export default function Clients() {
           </p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="label">Company *</label>
-              <select className="select" value={editing.company}
-                onChange={e => setEditing(p => ({ ...p!, company: e.target.value }))}>
-                <option value="">Select company…</option>
-                {companies.map(c => <option key={c.id} value={c.id}>{c.name_en}</option>)}
-              </select>
-            </div>
-            <div>
               <label className="label">Client Name *</label>
               <input className="input" value={editing.name_en} placeholder="Full legal name"
                 onChange={e => setEditing(p => ({ ...p!, name_en: e.target.value }))} />
@@ -142,7 +134,7 @@ export default function Clients() {
           <div className="flex gap-2 mt-5 pt-5 border-t border-[#E5DFD6]">
             <button
               onClick={() => saveMut.mutate(editing!)}
-              disabled={saveMut.isPending || !editing.name_en || !editing.company}
+              disabled={saveMut.isPending || !editing.name_en}
               className="px-4 py-2 bg-[#1A1714] text-white text-sm font-medium rounded-lg hover:bg-[#2C2825] transition-colors disabled:opacity-40"
             >
               {saveMut.isPending ? 'Saving…' : 'Save Client'}
