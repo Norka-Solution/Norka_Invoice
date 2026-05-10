@@ -110,7 +110,6 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
@@ -118,7 +117,17 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # Cloudinary for persistent media storage in production
 CLOUDINARY_URL = config('CLOUDINARY_URL', default='')
 if CLOUDINARY_URL:
+    import os as _os
+    _os.environ['CLOUDINARY_URL'] = CLOUDINARY_URL
     INSTALLED_APPS += ['cloudinary_storage', 'cloudinary']
-    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+    STORAGES = {
+        'default':     {'BACKEND': 'cloudinary_storage.storage.MediaCloudinaryStorage'},
+        'staticfiles': {'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage'},
+    }
+else:
+    STORAGES = {
+        'default':     {'BACKEND': 'django.core.files.storage.FileSystemStorage'},
+        'staticfiles': {'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage'},
+    }
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
