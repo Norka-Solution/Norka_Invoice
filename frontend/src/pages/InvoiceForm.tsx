@@ -121,7 +121,7 @@ export default function InvoiceForm() {
   const total    = subtotal + vatAmt
 
   const selectedCompany = companyList.find(c => c.id === form.company)
-  const canSave = form.company && form.client && form.issue_date && form.due_date
+  const canSave = form.client && form.issue_date && form.due_date
 
   return (
     <div className="space-y-5">
@@ -144,14 +144,6 @@ export default function InvoiceForm() {
         <p className="text-[10px] font-semibold text-[#A39890] uppercase tracking-widest">Invoice Details</p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="label">Company *</label>
-            <select className="select" value={form.company}
-              onChange={e => { setForm(f => ({ ...f, company: e.target.value })); setCompanyId(e.target.value) }}>
-              <option value="">Select company…</option>
-              {companyList.map(c => <option key={c.id} value={c.id}>{c.name_en}</option>)}
-            </select>
-          </div>
           <div>
             <label className="label">Client *</label>
             <select className="select" value={form.client}
