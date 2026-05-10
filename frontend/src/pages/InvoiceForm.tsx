@@ -164,21 +164,6 @@ export default function InvoiceForm() {
           </div>
         </div>
 
-        <div className="border-t border-[#E5DFD6]" />
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="label">Service Period Start <span className="normal-case text-[#CEC8BE] font-normal">(optional)</span></label>
-            <input className="input" type="date" value={form.period_start}
-              onChange={e => setForm(f => ({ ...f, period_start: e.target.value }))} />
-          </div>
-          <div>
-            <label className="label">Service Period End</label>
-            <input className="input" type="date" value={form.period_end}
-              onChange={e => setForm(f => ({ ...f, period_end: e.target.value }))} />
-          </div>
-        </div>
-
         {selectedCompany?.bank_accounts?.length ? (
           <div>
             <label className="label">Bank Account</label>
