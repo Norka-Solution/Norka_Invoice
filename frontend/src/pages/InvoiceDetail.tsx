@@ -83,28 +83,52 @@ export default function InvoiceDetail() {
       {/* Toolbar */}
       <div className="no-print flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-3">
-          <button onClick={() => navigate('/invoices')} className="btn-ghost btn-sm">← Back</button>
-          <div>
+          <button
+            onClick={() => navigate('/invoices')}
+            className="px-3 py-1.5 bg-white border border-[#E5DFD6] text-[#6B6259] text-xs font-medium rounded-lg hover:bg-[#F3F0EB] transition-colors"
+          >
+            ← Back
+          </button>
+          <div className="flex items-center gap-2">
             <span className="font-bold text-[#1A1714]">{invoice.invoice_number}</span>
-            <span className={`badge-${invoice.status} ml-2`}>{statusLabel(invoice.status)}</span>
+            <span className={`badge-${invoice.status}`}>{statusLabel(invoice.status)}</span>
           </div>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          <button onClick={() => downloadPdf(invoice.id, invoice.invoice_number)} className="btn-secondary btn-sm">
+          <button
+            onClick={() => downloadPdf(invoice.id, invoice.invoice_number)}
+            className="px-3 py-1.5 bg-white border border-[#E5DFD6] text-[#6B6259] text-xs font-medium rounded-lg hover:bg-[#F3F0EB] transition-colors"
+          >
             PDF
           </button>
-          <button onClick={() => window.print()} className="btn-secondary btn-sm">
+          <button
+            onClick={() => window.print()}
+            className="px-3 py-1.5 bg-white border border-[#E5DFD6] text-[#6B6259] text-xs font-medium rounded-lg hover:bg-[#F3F0EB] transition-colors"
+          >
             Print
           </button>
           {invoice.status === 'draft' && (
             <>
-              <Link to={`/invoices/${id}/edit`} className="btn-secondary btn-sm">Edit</Link>
-              <button onClick={() => sendMut.mutate()} disabled={sendMut.isPending} className="btn-primary btn-sm">
+              <Link
+                to={`/invoices/${id}/edit`}
+                className="px-3 py-1.5 bg-white border border-[#E5DFD6] text-[#6B6259] text-xs font-medium rounded-lg hover:bg-[#F3F0EB] transition-colors"
+              >
+                Edit
+              </Link>
+              <button
+                onClick={() => sendMut.mutate()}
+                disabled={sendMut.isPending}
+                className="px-3 py-1.5 bg-[#1A1714] text-white text-xs font-medium rounded-lg hover:bg-[#2C2825] transition-colors disabled:opacity-40"
+              >
                 {sendMut.isPending ? '…' : 'Mark Sent'}
               </button>
             </>
           )}
-          <button onClick={() => dupMut.mutate()} disabled={dupMut.isPending} className="btn-ghost btn-sm">
+          <button
+            onClick={() => dupMut.mutate()}
+            disabled={dupMut.isPending}
+            className="px-3 py-1.5 text-[#6B6259] text-xs font-medium rounded-lg hover:bg-[#F3F0EB] transition-colors disabled:opacity-40"
+          >
             {dupMut.isPending ? '…' : 'Duplicate'}
           </button>
         </div>
@@ -114,13 +138,16 @@ export default function InvoiceDetail() {
       {['sent', 'partially_paid', 'overdue'].includes(invoice.status) && (
         <div className="no-print space-y-3">
           {!showPay ? (
-            <button onClick={() => setShowPay(true)} className="btn-primary btn-sm">
+            <button
+              onClick={() => setShowPay(true)}
+              className="px-4 py-2 bg-[#1A1714] text-white text-sm font-medium rounded-lg hover:bg-[#2C2825] transition-colors"
+            >
               + Record Payment
             </button>
           ) : (
-            <div className="card p-5">
-              <p className="text-sm font-semibold text-[#1A1714] mb-4">Record Payment</p>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="bg-white border border-[#E5DFD6] rounded-2xl p-6">
+              <p className="text-sm font-semibold text-[#1A1714] mb-5">Record Payment</p>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div>
                   <label className="label">Amount (AED)</label>
                   <input className="input" type="number" step="0.01" placeholder="0.00"
@@ -147,15 +174,20 @@ export default function InvoiceDetail() {
                     value={payForm.reference} onChange={e => setPayForm(p => ({ ...p, reference: e.target.value }))} />
                 </div>
               </div>
-              <div className="flex gap-2 mt-4">
+              <div className="flex gap-2 mt-5 pt-5 border-t border-[#E5DFD6]">
                 <button
                   onClick={() => payMut.mutate()}
                   disabled={payMut.isPending || !payForm.amount || !payForm.payment_date}
-                  className="btn-primary btn-sm"
+                  className="px-4 py-2 bg-[#1A1714] text-white text-sm font-medium rounded-lg hover:bg-[#2C2825] transition-colors disabled:opacity-40"
                 >
                   {payMut.isPending ? 'Saving…' : 'Save Payment'}
                 </button>
-                <button onClick={() => setShowPay(false)} className="btn-ghost btn-sm">Cancel</button>
+                <button
+                  onClick={() => setShowPay(false)}
+                  className="px-4 py-2 bg-white border border-[#E5DFD6] text-[#6B6259] text-sm font-medium rounded-lg hover:bg-[#F3F0EB] transition-colors"
+                >
+                  Cancel
+                </button>
               </div>
             </div>
           )}

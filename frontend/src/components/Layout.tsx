@@ -119,7 +119,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         </header>
 
         {/* Page */}
-        <main className="flex-1 px-5 md:px-8 py-7">
+        <main className="flex-1 px-6 md:px-10 py-8">
           {children}
         </main>
 

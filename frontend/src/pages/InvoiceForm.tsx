@@ -124,7 +124,7 @@ export default function InvoiceForm() {
   const canSave = form.company && form.client && form.issue_date && form.due_date
 
   return (
-    <div className="max-w-4xl space-y-5">
+    <div className="max-w-3xl space-y-5">
 
       {/* Header */}
       <div className="flex items-center gap-3">

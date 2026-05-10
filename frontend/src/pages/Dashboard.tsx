@@ -109,7 +109,7 @@ export default function Dashboard() {
   )
 
   return (
-    <div className="max-w-4xl space-y-0">
+    <div className="space-y-0">
 
       {/* ── Header ── */}
       <div className="flex items-start justify-between pb-7">
