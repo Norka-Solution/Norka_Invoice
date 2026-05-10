@@ -286,7 +286,6 @@ body {
       <tr>
         <th style="width:24px;">#</th>
         <th>Description</th>
-        <th>Category</th>
         <th class="r" style="width:36px;">Qty</th>
         <th class="r" style="width:80px;">Unit Price</th>
         <th class="r" style="width:80px;">Total (AED)</th>
@@ -294,14 +293,6 @@ body {
     </thead>
     <tbody>
       {% for group in item_groups %}
-        <tr class="cat-row">
-          <td colspan="6">
-            <div class="cat-pill">
-              <span class="cat-dot grp-{{ forloop.counter0 }}">{{ group.letter }}</span>
-              <span>{{ group.label_en }}</span>
-            </div>
-          </td>
-        </tr>
         {% for row in group.numbered_items %}
           <tr class="item-row">
             <td class="item-num">{{ row.num }}</td>
@@ -311,7 +302,6 @@ body {
                 <div class="item-orig">{{ row.item.currency }} {{ row.item.unit_price }} × {{ row.item.exchange_rate }}</div>
               {% endif %}
             </td>
-            <td class="item-cat">{{ group.label_en }}</td>
             <td class="item-qty">{{ row.item.quantity }}</td>
             <td class="item-price">
               {% if row.item.currency != 'AED' %}
