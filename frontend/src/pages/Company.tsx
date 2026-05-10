@@ -79,15 +79,15 @@ export default function CompanyPage() {
     <div className="max-w-3xl space-y-5">
 
       {/* Header */}
-      <div className="page-header">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="page-title">Company</h1>
-          <p className="page-sub">Profile & bank accounts</p>
+          <h1 className="text-xl font-bold text-[#1A1714] tracking-tight">Company</h1>
+          <p className="text-xs text-[#A39890] mt-0.5">Profile &amp; bank accounts</p>
         </div>
         <button
           onClick={() => saveMut.mutate()}
           disabled={saveMut.isPending || !form.name_en}
-          className="btn-primary"
+          className="px-4 py-2 bg-[#1A1714] text-white text-sm font-medium rounded-lg hover:bg-[#2C2825] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
         >
           {saveMut.isPending ? 'Saving…' : 'Save Changes'}
         </button>
@@ -95,30 +95,22 @@ export default function CompanyPage() {
 
       {/* Logo */}
       {company && (
-        <div className="card p-5">
-          <p className="section-label mb-4">Company Logo</p>
+        <div className="bg-white border border-[#E5DFD6] rounded-2xl p-6">
+          <p className="text-[10px] font-semibold text-[#A39890] uppercase tracking-widest mb-4">Company Logo</p>
           <div className="flex items-center gap-5">
-            <div className="w-20 h-20 rounded-xl border border-[#E5DFD6] bg-[#F8F5F0] flex items-center justify-center overflow-hidden flex-shrink-0">
+            <div className="w-16 h-16 rounded-xl border border-[#E5DFD6] bg-[#F8F5F0] flex items-center justify-center overflow-hidden flex-shrink-0">
               {logoUrl
                 ? <img src={logoUrl} alt="logo" className="w-full h-full object-contain" />
-                : <span className="text-2xl font-bold text-[#CEC8BE]">{form.name_en?.[0] ?? 'N'}</span>
+                : <span className="text-xl font-bold text-[#CEC8BE]">{form.name_en?.[0] ?? 'N'}</span>
               }
             </div>
             <div>
-              <input
-                ref={fileRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={e => {
-                  const f = e.target.files?.[0]
-                  if (f) logoMut.mutate(f)
-                }}
-              />
+              <input ref={fileRef} type="file" accept="image/*" className="hidden"
+                onChange={e => { const f = e.target.files?.[0]; if (f) logoMut.mutate(f) }} />
               <button
                 onClick={() => fileRef.current?.click()}
                 disabled={logoMut.isPending}
-                className="btn-secondary btn-sm"
+                className="px-3 py-1.5 bg-white border border-[#E5DFD6] text-[#1A1714] text-xs font-medium rounded-lg hover:bg-[#F3F0EB] transition-colors disabled:opacity-40"
               >
                 {logoMut.isPending ? 'Uploading…' : 'Upload Logo'}
               </button>
@@ -129,38 +121,28 @@ export default function CompanyPage() {
       )}
 
       {/* Company info */}
-      <div className="card p-5 space-y-4">
-        <p className="section-label">Company Information</p>
+      <div className="bg-white border border-[#E5DFD6] rounded-2xl p-6 space-y-5">
+        <p className="text-[10px] font-semibold text-[#A39890] uppercase tracking-widest">Company Information</p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="label">Company Name (EN) *</label>
-            <input className="input" value={form.name_en} placeholder="NORKA Solution"
+          <div className="md:col-span-2">
+            <label className="label">Company Name *</label>
+            <input className="input" value={form.name_en} placeholder="e.g. NORKA Solution LLC"
               onChange={e => setForm(f => ({ ...f, name_en: e.target.value }))} />
           </div>
-          <div>
-            <label className="label">Company Name (AR)</label>
-            <input className="input" dir="rtl" value={form.name_ar} placeholder="نوركا سوليونش"
-              onChange={e => setForm(f => ({ ...f, name_ar: e.target.value }))} />
-          </div>
           <div className="md:col-span-2">
-            <label className="label">Address (EN)</label>
+            <label className="label">Address</label>
             <input className="input" value={form.address_en} placeholder="Full address"
               onChange={e => setForm(f => ({ ...f, address_en: e.target.value }))} />
           </div>
-          <div className="md:col-span-2">
-            <label className="label">Address (AR)</label>
-            <input className="input" dir="rtl" value={form.address_ar} placeholder="العنوان بالعربية"
-              onChange={e => setForm(f => ({ ...f, address_ar: e.target.value }))} />
-          </div>
         </div>
 
-        <div className="divider" />
+        <div className="border-t border-[#E5DFD6]" />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="label">Phone</label>
-            <input className="input" value={form.phone} placeholder="+971 XX XXX XXXX"
+            <input className="input" value={form.phone} placeholder="+971 2 XXX XXXX"
               onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} />
           </div>
           <div>
@@ -169,48 +151,61 @@ export default function CompanyPage() {
               onChange={e => setForm(f => ({ ...f, email: e.target.value }))} />
           </div>
           <div>
-            <label className="label">TRN</label>
+            <label className="label">TRN (Tax Registration No.)</label>
             <input className="input font-mono" value={form.trn} placeholder="100XXXXXXXXX00003"
               onChange={e => setForm(f => ({ ...f, trn: e.target.value }))} />
           </div>
           <div>
             <label className="label">Website</label>
-            <input className="input" value={form.website} placeholder="https://"
+            <input className="input" value={form.website} placeholder="https://company.com"
               onChange={e => setForm(f => ({ ...f, website: e.target.value }))} />
           </div>
         </div>
       </div>
 
       {/* Bank accounts */}
-      <div className="card p-5 space-y-4">
+      <div className="bg-white border border-[#E5DFD6] rounded-2xl p-6 space-y-4">
         <div className="flex items-center justify-between">
-          <p className="section-label">Bank Accounts</p>
-          <button onClick={addBank} className="btn-secondary btn-sm">+ Add Bank</button>
+          <p className="text-[10px] font-semibold text-[#A39890] uppercase tracking-widest">Bank Accounts</p>
+          <button
+            onClick={addBank}
+            className="px-3 py-1.5 bg-white border border-[#E5DFD6] text-[#1A1714] text-xs font-medium rounded-lg hover:bg-[#F3F0EB] transition-colors"
+          >
+            + Add Bank
+          </button>
         </div>
 
         {banks.length === 0 ? (
           <div className="border-2 border-dashed border-[#E5DFD6] rounded-xl p-8 text-center">
-            <p className="text-sm text-[#A39890] mb-3">No bank accounts</p>
-            <button onClick={addBank} className="btn-secondary btn-sm">Add Bank Account</button>
+            <p className="text-sm text-[#A39890] mb-3">No bank accounts added yet</p>
+            <button
+              onClick={addBank}
+              className="px-3 py-1.5 bg-white border border-[#E5DFD6] text-[#1A1714] text-xs font-medium rounded-lg hover:bg-[#F3F0EB] transition-colors"
+            >
+              Add Bank Account
+            </button>
           </div>
         ) : (
           <div className="space-y-3">
             {banks.map((b, idx) => (
-              <div key={idx} className={`border rounded-xl p-4 space-y-3 ${b.is_default ? 'border-[#1A1714]/20 bg-[#F8F5F0]' : 'border-[#E5DFD6]'}`}>
+              <div
+                key={idx}
+                className={`border rounded-xl p-5 space-y-4 ${b.is_default ? 'border-[#1A1714]/15 bg-[#FAFAF8]' : 'border-[#E5DFD6]'}`}
+              >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-semibold text-[#A39890] uppercase tracking-widest">
                       Bank {idx + 1}
                     </span>
                     {b.is_default && (
-                      <span className="text-[10px] font-semibold text-[#1A1714] bg-[#1A1714]/10 px-2 py-0.5 rounded-full">
+                      <span className="text-[10px] font-semibold text-[#1A1714] bg-[#1A1714]/8 px-2 py-0.5 rounded-full">
                         Default
                       </span>
                     )}
                   </div>
                   <button
                     onClick={() => setBanks(p => p.filter((_, i) => i !== idx))}
-                    className="text-xs text-[#A39890] hover:text-[#8B3A3A]"
+                    className="text-xs text-[#A39890] hover:text-[#8B3A3A] transition-colors"
                   >
                     Remove
                   </button>
@@ -228,8 +223,9 @@ export default function CompanyPage() {
                     <div key={key}>
                       <label className="label">{label}</label>
                       <input
-                        className={`input text-sm ${['iban','swift_code','account_number'].includes(key) ? 'font-mono' : ''}`}
+                        className={`input text-sm ${['iban', 'swift_code', 'account_number'].includes(key) ? 'font-mono' : ''}`}
                         value={(b as Record<string, string>)[key] || ''}
+                        placeholder={key === 'iban' ? 'AE...' : key === 'swift_code' ? 'XXXXXXXX' : ''}
                         onChange={e => setBanks(p => p.map((x, i) =>
                           i === idx ? { ...x, [key]: e.target.value } : x
                         ))}
@@ -238,10 +234,10 @@ export default function CompanyPage() {
                   ))}
                 </div>
 
-                <label className="flex items-center gap-2 text-xs text-[#6B6259] cursor-pointer">
+                <label className="flex items-center gap-2.5 text-xs text-[#6B6259] cursor-pointer">
                   <input
                     type="checkbox"
-                    className="accent-[#1A1714] w-3.5 h-3.5"
+                    className="w-3.5 h-3.5 accent-[#1A1714]"
                     checked={b.is_default || false}
                     onChange={e => setBanks(p =>
                       p.map((x, i) => ({ ...x, is_default: i === idx ? e.target.checked : false }))
@@ -255,13 +251,15 @@ export default function CompanyPage() {
         )}
       </div>
 
+      {/* Save bottom */}
       <button
         onClick={() => saveMut.mutate()}
         disabled={saveMut.isPending || !form.name_en}
-        className="btn-primary w-full justify-center py-3"
+        className="w-full py-3 bg-[#1A1714] text-white text-sm font-medium rounded-xl hover:bg-[#2C2825] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
       >
         {saveMut.isPending ? 'Saving…' : 'Save All Changes'}
       </button>
+
     </div>
   )
 }

@@ -19,7 +19,7 @@
   body {
     background: #F8F5F0;
     color: #1A1714;
-    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Noto Sans Arabic', Arial, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     line-height: 1.5;
   }
@@ -52,7 +52,7 @@
   .btn-icon      { @apply w-8 h-8 p-0 rounded-md; }
 
   /* Cards */
-  .card { @apply bg-white rounded-xl border border-[#E5DFD6]; }
+  .card { @apply bg-white rounded-2xl border border-[#E5DFD6]; }
 
   /* Form */
   .input {

@@ -90,18 +90,23 @@ export default function Invoices() {
       )}
 
       {/* Header */}
-      <div className="page-header">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="page-title">Invoices</h1>
-          <p className="page-sub">{data?.count ?? 0} total</p>
+          <h1 className="text-xl font-bold text-[#1A1714] tracking-tight">Invoices</h1>
+          <p className="text-xs text-[#A39890] mt-0.5">{data?.count ?? 0} total</p>
         </div>
-        <Link to="/invoices/new" className="btn-primary">+ New Invoice</Link>
+        <Link
+          to="/invoices/new"
+          className="px-4 py-2 bg-[#1A1714] text-white text-sm font-medium rounded-lg hover:bg-[#2C2825] transition-colors"
+        >
+          + New Invoice
+        </Link>
       </div>
 
       {/* Filters */}
-      <div className="card p-3 flex flex-wrap items-center gap-2">
+      <div className="bg-white border border-[#E5DFD6] rounded-2xl p-3 flex flex-wrap items-center gap-2">
         <input
-          className="input flex-1 min-w-48"
+          className="input flex-1 min-w-48 border-0 focus:ring-0 bg-transparent"
           placeholder="Search by invoice # or client…"
           defaultValue={q}
           onChange={e => setParam('search', e.target.value)}
@@ -111,7 +116,7 @@ export default function Invoices() {
             <button
               key={o.value}
               onClick={() => setParam('status', o.value)}
-              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                 status === o.value
                   ? 'bg-[#1A1714] text-white'
                   : 'text-[#6B6259] hover:bg-[#F3F0EB] hover:text-[#1A1714]'
@@ -124,17 +129,22 @@ export default function Invoices() {
       </div>
 
       {/* Table */}
-      <div className="card overflow-hidden">
+      <div className="bg-white border border-[#E5DFD6] rounded-2xl overflow-hidden">
         {isLoading ? (
           <div className="flex justify-center items-center p-16"><div className="spinner" /></div>
         ) : invoices.length === 0 ? (
-          <div className="empty-state">
+          <div className="flex flex-col items-center justify-center py-16 text-center">
             <p className="text-sm text-[#A39890] mb-1">No invoices found</p>
             <p className="text-xs text-[#CEC8BE] mb-4">
-              {(status || q) ? 'Try different filters' : 'Create your first invoice'}
+              {(status || q) ? 'Try different filters' : 'Create your first invoice to get started'}
             </p>
             {!status && !q && (
-              <Link to="/invoices/new" className="btn-primary btn-sm">Create Invoice</Link>
+              <Link
+                to="/invoices/new"
+                className="px-4 py-2 bg-[#1A1714] text-white text-sm font-medium rounded-lg hover:bg-[#2C2825] transition-colors"
+              >
+                Create Invoice
+              </Link>
             )}
           </div>
         ) : (
@@ -154,7 +164,7 @@ export default function Invoices() {
                 {invoices.map(inv => (
                   <tr key={inv.id}>
                     <td>
-                      <Link to={`/invoices/${inv.id}`} className="font-medium text-[#1A1714] hover:underline">
+                      <Link to={`/invoices/${inv.id}`} className="font-semibold text-[#1A1714] hover:underline">
                         {inv.invoice_number}
                       </Link>
                     </td>
@@ -167,53 +177,45 @@ export default function Invoices() {
                       {fmtDate(inv.due_date)}
                     </td>
                     <td className="text-right font-medium text-[#1A1714]">
-                      {fmtAmount(inv.total_aed)}
+                      AED {fmtAmount(inv.total_aed)}
                     </td>
                     <td className={`text-right font-medium ${Number(inv.balance_due) > 0 ? 'text-[#8B3A3A]' : 'text-[#3A6B4F]'}`}>
-                      {fmtAmount(inv.balance_due)}
+                      AED {fmtAmount(inv.balance_due)}
                     </td>
                     <td>
-                      <div className="flex items-center justify-end gap-2 text-xs">
-                        <Link to={`/invoices/${inv.id}`} className="text-[#6B6259] hover:text-[#1A1714] hover:underline">
+                      <div className="flex items-center justify-end gap-3 text-xs">
+                        <Link to={`/invoices/${inv.id}`} className="text-[#6B6259] hover:text-[#1A1714] font-medium transition-colors">
                           View
                         </Link>
-                        <span className="text-[#E5DFD6]">·</span>
                         <button
                           onClick={() => handlePdf(inv)}
                           disabled={downloading === inv.id}
-                          className="text-[#6B6259] hover:text-[#1A1714] hover:underline disabled:opacity-40"
+                          className="text-[#6B6259] hover:text-[#1A1714] font-medium transition-colors disabled:opacity-40"
                         >
                           {downloading === inv.id ? '…' : 'PDF'}
                         </button>
                         {inv.status === 'draft' && (
-                          <>
-                            <span className="text-[#E5DFD6]">·</span>
-                            <button
-                              onClick={() => sendMut.mutate(inv.id)}
-                              className="text-[#3A5F8B] hover:underline"
-                            >
-                              Send
-                            </button>
-                          </>
+                          <button
+                            onClick={() => sendMut.mutate(inv.id)}
+                            className="text-[#3A5F8B] hover:underline font-medium"
+                          >
+                            Send
+                          </button>
                         )}
-                        <span className="text-[#E5DFD6]">·</span>
                         <button
                           onClick={() => dupMut.mutate(inv.id)}
-                          className="text-[#6B6259] hover:text-[#1A1714] hover:underline"
+                          className="text-[#6B6259] hover:text-[#1A1714] font-medium transition-colors"
                         >
                           Copy
                         </button>
                         {inv.status === 'draft' && (
-                          <>
-                            <span className="text-[#E5DFD6]">·</span>
-                            <button
-                              onClick={() => setDeleteTarget(inv)}
-                              disabled={deletingId === inv.id}
-                              className="text-[#8B3A3A] hover:underline disabled:opacity-40"
-                            >
-                              Delete
-                            </button>
-                          </>
+                          <button
+                            onClick={() => setDeleteTarget(inv)}
+                            disabled={deletingId === inv.id}
+                            className="text-[#8B3A3A] font-medium hover:underline disabled:opacity-40"
+                          >
+                            Delete
+                          </button>
                         )}
                       </div>
                     </td>
@@ -228,21 +230,19 @@ export default function Invoices() {
       {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex items-center justify-between text-sm">
-          <span className="text-[#A39890]">
-            Page {page} of {totalPages}
-          </span>
+          <span className="text-[#A39890]">Page {page} of {totalPages}</span>
           <div className="flex gap-1">
             <button
               disabled={page <= 1}
               onClick={() => setParam('page', String(page - 1))}
-              className="btn-ghost btn-sm disabled:opacity-30"
+              className="px-3 py-1.5 bg-white border border-[#E5DFD6] text-[#6B6259] text-xs font-medium rounded-lg hover:bg-[#F3F0EB] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
             >
               ← Prev
             </button>
             <button
               disabled={page >= totalPages}
               onClick={() => setParam('page', String(page + 1))}
-              className="btn-ghost btn-sm disabled:opacity-30"
+              className="px-3 py-1.5 bg-white border border-[#E5DFD6] text-[#6B6259] text-xs font-medium rounded-lg hover:bg-[#F3F0EB] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
             >
               Next →
             </button>

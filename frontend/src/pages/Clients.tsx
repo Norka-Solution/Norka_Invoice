@@ -55,7 +55,7 @@ export default function Clients() {
   const allClients = data?.results ?? []
   const clients    = search
     ? allClients.filter(c =>
-        [c.name_en, c.name_ar, c.email, c.contact_person]
+        [c.name_en, c.email, c.contact_person]
           .some(f => f?.toLowerCase().includes(search.toLowerCase()))
       )
     : allClients
@@ -80,21 +80,26 @@ export default function Clients() {
       )}
 
       {/* Header */}
-      <div className="page-header">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="page-title">Clients</h1>
-          <p className="page-sub">{allClients.length} total</p>
+          <h1 className="text-xl font-bold text-[#1A1714] tracking-tight">Clients</h1>
+          <p className="text-xs text-[#A39890] mt-0.5">{allClients.length} total</p>
         </div>
-        <button onClick={openNew} className="btn-primary">+ New Client</button>
+        <button
+          onClick={openNew}
+          className="px-4 py-2 bg-[#1A1714] text-white text-sm font-medium rounded-lg hover:bg-[#2C2825] transition-colors"
+        >
+          + New Client
+        </button>
       </div>
 
-      {/* Form */}
+      {/* Inline form */}
       {editing && (
-        <div className="card p-5">
-          <p className="text-sm font-semibold text-[#1A1714] mb-4">
+        <div className="bg-white border border-[#E5DFD6] rounded-2xl p-6">
+          <p className="text-sm font-semibold text-[#1A1714] mb-5">
             {isNew ? 'New Client' : 'Edit Client'}
           </p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="label">Company *</label>
               <select className="select" value={editing.company}
@@ -104,50 +109,48 @@ export default function Clients() {
               </select>
             </div>
             <div>
-              <label className="label">Name (EN) *</label>
-              <input className="input" value={editing.name_en} placeholder="Client name"
+              <label className="label">Client Name *</label>
+              <input className="input" value={editing.name_en} placeholder="Full legal name"
                 onChange={e => setEditing(p => ({ ...p!, name_en: e.target.value }))} />
             </div>
             <div>
-              <label className="label">Name (AR)</label>
-              <input className="input" value={editing.name_ar} dir="rtl" placeholder="اسم العميل"
-                onChange={e => setEditing(p => ({ ...p!, name_ar: e.target.value }))} />
-            </div>
-            <div>
               <label className="label">Contact Person</label>
-              <input className="input" value={editing.contact_person}
+              <input className="input" value={editing.contact_person} placeholder="Account manager name"
                 onChange={e => setEditing(p => ({ ...p!, contact_person: e.target.value }))} />
             </div>
             <div>
               <label className="label">Email</label>
-              <input className="input" type="email" value={editing.email}
+              <input className="input" type="email" value={editing.email} placeholder="billing@client.com"
                 onChange={e => setEditing(p => ({ ...p!, email: e.target.value }))} />
             </div>
             <div>
               <label className="label">Phone</label>
-              <input className="input" value={editing.phone} placeholder="+971…"
+              <input className="input" value={editing.phone} placeholder="+971 XX XXX XXXX"
                 onChange={e => setEditing(p => ({ ...p!, phone: e.target.value }))} />
-            </div>
-            <div className="md:col-span-2">
-              <label className="label">Address</label>
-              <input className="input" value={editing.address_en}
-                onChange={e => setEditing(p => ({ ...p!, address_en: e.target.value }))} />
             </div>
             <div>
               <label className="label">TRN</label>
-              <input className="input font-mono" value={editing.trn} placeholder="Tax Reg. No."
+              <input className="input font-mono" value={editing.trn} placeholder="Tax Registration No."
                 onChange={e => setEditing(p => ({ ...p!, trn: e.target.value }))} />
             </div>
+            <div className="md:col-span-3">
+              <label className="label">Address</label>
+              <input className="input" value={editing.address_en} placeholder="Full address"
+                onChange={e => setEditing(p => ({ ...p!, address_en: e.target.value }))} />
+            </div>
           </div>
-          <div className="flex gap-2 mt-4">
+          <div className="flex gap-2 mt-5 pt-5 border-t border-[#E5DFD6]">
             <button
               onClick={() => saveMut.mutate(editing!)}
               disabled={saveMut.isPending || !editing.name_en || !editing.company}
-              className="btn-primary btn-sm"
+              className="px-4 py-2 bg-[#1A1714] text-white text-sm font-medium rounded-lg hover:bg-[#2C2825] transition-colors disabled:opacity-40"
             >
               {saveMut.isPending ? 'Saving…' : 'Save Client'}
             </button>
-            <button onClick={() => { setEditing(null); setIsNew(false) }} className="btn-ghost btn-sm">
+            <button
+              onClick={() => { setEditing(null); setIsNew(false) }}
+              className="px-4 py-2 bg-white border border-[#E5DFD6] text-[#6B6259] text-sm font-medium rounded-lg hover:bg-[#F3F0EB] transition-colors"
+            >
               Cancel
             </button>
           </div>
@@ -155,9 +158,9 @@ export default function Clients() {
       )}
 
       {/* Search */}
-      <div className="card p-3">
+      <div className="bg-white border border-[#E5DFD6] rounded-2xl p-3">
         <input
-          className="input"
+          className="input border-0 focus:ring-0 bg-transparent"
           placeholder="Search by name, email, or contact…"
           value={search}
           onChange={e => setSearch(e.target.value)}
@@ -165,21 +168,26 @@ export default function Clients() {
       </div>
 
       {/* Table */}
-      <div className="card overflow-hidden">
+      <div className="bg-white border border-[#E5DFD6] rounded-2xl overflow-hidden">
         {isLoading ? (
           <div className="flex justify-center items-center p-16"><div className="spinner" /></div>
         ) : clients.length === 0 ? (
-          <div className="empty-state">
+          <div className="flex flex-col items-center justify-center py-16 text-center">
             <p className="text-sm text-[#A39890] mb-1">
               {search ? 'No clients match your search' : 'No clients yet'}
             </p>
             {!search && (
-              <button onClick={openNew} className="btn-primary btn-sm mt-4">Add First Client</button>
+              <button
+                onClick={openNew}
+                className="mt-4 px-4 py-2 bg-[#1A1714] text-white text-sm font-medium rounded-lg hover:bg-[#2C2825] transition-colors"
+              >
+                Add First Client
+              </button>
             )}
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="tbl min-w-[600px]">
+            <table className="tbl min-w-[640px]">
               <thead><tr>
                 <th>Client</th>
                 <th>Contact</th>
@@ -196,12 +204,7 @@ export default function Clients() {
                         <div className="w-8 h-8 rounded-lg bg-[#F3F0EB] flex items-center justify-center flex-shrink-0">
                           <span className="text-xs font-bold text-[#6B6259]">{initials(c.name_en)}</span>
                         </div>
-                        <div>
-                          <div className="font-medium text-[#1A1714] text-sm">{c.name_en}</div>
-                          {c.name_ar && (
-                            <div className="text-xs text-[#A39890]" dir="rtl">{c.name_ar}</div>
-                          )}
-                        </div>
+                        <span className="font-medium text-[#1A1714] text-sm">{c.name_en}</span>
                       </div>
                     </td>
                     <td className="text-[#6B6259] text-sm">{c.contact_person || <span className="text-[#CEC8BE]">—</span>}</td>
@@ -217,13 +220,13 @@ export default function Clients() {
                       <div className="flex items-center justify-end gap-3 text-xs">
                         <button
                           onClick={() => { setEditing({ ...c }); setIsNew(false) }}
-                          className="text-[#6B6259] hover:text-[#1A1714] hover:underline"
+                          className="text-[#6B6259] hover:text-[#1A1714] font-medium transition-colors"
                         >
                           Edit
                         </button>
                         <button
                           onClick={() => setDeleteTarget(c)}
-                          className="text-[#8B3A3A] hover:underline"
+                          className="text-[#8B3A3A] font-medium hover:underline"
                         >
                           Delete
                         </button>

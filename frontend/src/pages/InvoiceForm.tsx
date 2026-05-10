@@ -110,6 +110,7 @@ export default function InvoiceForm() {
       const next = [...prev]
       const item = { ...next[idx], [key]: val }
       if (key === 'currency') item.exchange_rate = RATES[val as string] ?? 1
+      if (key === 'description_en') item.description_ar = val as string
       next[idx] = item
       return next
     })
@@ -123,17 +124,24 @@ export default function InvoiceForm() {
   const canSave = form.company && form.client && form.issue_date && form.due_date
 
   return (
-    <div className="max-w-4xl mx-auto space-y-5">
+    <div className="max-w-4xl space-y-5">
 
       {/* Header */}
       <div className="flex items-center gap-3">
-        <button onClick={() => navigate(-1)} className="btn-ghost btn-sm">← Back</button>
-        <h1 className="page-title">{isEdit ? 'Edit Invoice' : 'New Invoice'}</h1>
+        <button
+          onClick={() => navigate(-1)}
+          className="px-3 py-1.5 bg-white border border-[#E5DFD6] text-[#6B6259] text-xs font-medium rounded-lg hover:bg-[#F3F0EB] transition-colors"
+        >
+          ← Back
+        </button>
+        <h1 className="text-xl font-bold text-[#1A1714] tracking-tight">
+          {isEdit ? 'Edit Invoice' : 'New Invoice'}
+        </h1>
       </div>
 
-      {/* Details */}
-      <div className="card p-5 space-y-5">
-        <p className="section-label">Invoice Details</p>
+      {/* Invoice details */}
+      <div className="bg-white border border-[#E5DFD6] rounded-2xl p-6 space-y-5">
+        <p className="text-[10px] font-semibold text-[#A39890] uppercase tracking-widest">Invoice Details</p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -164,7 +172,7 @@ export default function InvoiceForm() {
           </div>
         </div>
 
-        <div className="divider" />
+        <div className="border-t border-[#E5DFD6]" />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -194,23 +202,23 @@ export default function InvoiceForm() {
       </div>
 
       {/* Line items */}
-      <div className="card overflow-hidden">
-        <div className="px-5 py-3.5 border-b border-[#E5DFD6] flex items-center justify-between">
-          <p className="text-sm font-semibold text-[#1A1714]">Line Items</p>
+      <div className="bg-white border border-[#E5DFD6] rounded-2xl overflow-hidden">
+        <div className="px-6 py-4 border-b border-[#E5DFD6] flex items-center justify-between">
+          <p className="text-[10px] font-semibold text-[#A39890] uppercase tracking-widest">Line Items</p>
           <button
             onClick={() => setItems(p => [...p, EMPTY_ITEM()])}
-            className="btn-secondary btn-sm"
+            className="px-3 py-1.5 bg-white border border-[#E5DFD6] text-[#1A1714] text-xs font-medium rounded-lg hover:bg-[#F3F0EB] transition-colors"
           >
             + Add Item
           </button>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="border-b border-[#E5DFD6]">
+          <table className="w-full min-w-[680px]">
+            <thead className="border-b border-[#E5DFD6] bg-[#FAFAF8]">
               <tr>
-                {['Description (EN)', 'Description (AR)', 'Category', 'Qty', 'Price', 'Cur', 'Total AED', ''].map(h => (
-                  <th key={h} className="px-3 py-2.5 text-left text-[10px] font-semibold text-[#A39890] uppercase tracking-widest">
+                {['Description', 'Category', 'Qty', 'Unit Price', 'Currency', 'Total (AED)', ''].map(h => (
+                  <th key={h} className="px-4 py-3 text-left text-[10px] font-semibold text-[#A39890] uppercase tracking-widest whitespace-nowrap">
                     {h}
                   </th>
                 ))}
@@ -219,46 +227,44 @@ export default function InvoiceForm() {
             <tbody className="divide-y divide-[#F3F0EB]">
               {items.map((item, idx) => (
                 <tr key={idx}>
-                  <td className="px-3 py-2">
-                    <input className="input text-xs" placeholder="Service description"
+                  <td className="px-4 py-2.5">
+                    <input
+                      className="input text-sm min-w-[200px]"
+                      placeholder="Describe the service or product…"
                       value={item.description_en}
-                      onChange={e => setItem(idx, 'description_en', e.target.value)} />
+                      onChange={e => setItem(idx, 'description_en', e.target.value)}
+                    />
                   </td>
-                  <td className="px-3 py-2">
-                    <input className="input text-xs" placeholder="وصف الخدمة" dir="rtl"
-                      value={item.description_ar}
-                      onChange={e => setItem(idx, 'description_ar', e.target.value)} />
-                  </td>
-                  <td className="px-3 py-2">
-                    <select className="select text-xs w-32" value={item.category}
+                  <td className="px-4 py-2.5">
+                    <select className="select text-sm w-36" value={item.category}
                       onChange={e => setItem(idx, 'category', e.target.value)}>
                       {CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
                     </select>
                   </td>
-                  <td className="px-3 py-2">
-                    <input className="input text-xs w-16" type="number" min="1"
+                  <td className="px-4 py-2.5">
+                    <input className="input text-sm w-16 text-center" type="number" min="1"
                       value={item.quantity}
                       onChange={e => setItem(idx, 'quantity', parseInt(e.target.value) || 1)} />
                   </td>
-                  <td className="px-3 py-2">
-                    <input className="input text-xs w-28" type="number" min="0" step="0.01"
+                  <td className="px-4 py-2.5">
+                    <input className="input text-sm w-28" type="number" min="0" step="0.01"
                       value={item.unit_price}
                       onChange={e => setItem(idx, 'unit_price', parseFloat(e.target.value) || 0)} />
                   </td>
-                  <td className="px-3 py-2">
-                    <select className="select text-xs w-20" value={item.currency}
+                  <td className="px-4 py-2.5">
+                    <select className="select text-sm w-20" value={item.currency}
                       onChange={e => setItem(idx, 'currency', e.target.value)}>
                       {CURRENCIES.map(c => <option key={c} value={c}>{c}</option>)}
                     </select>
                   </td>
-                  <td className="px-3 py-2 text-xs font-medium text-right text-[#1A1714]">
+                  <td className="px-4 py-2.5 text-sm font-semibold text-[#1A1714] whitespace-nowrap">
                     {fmtAmount(item.quantity * item.unit_price * (item.exchange_rate || 1))}
                   </td>
-                  <td className="px-3 py-2">
+                  <td className="px-4 py-2.5">
                     {items.length > 1 && (
                       <button
                         onClick={() => setItems(p => p.filter((_, i) => i !== idx))}
-                        className="text-xs text-[#A39890] hover:text-[#8B3A3A]"
+                        className="text-xs text-[#A39890] hover:text-[#8B3A3A] transition-colors w-6 h-6 flex items-center justify-center rounded"
                       >
                         ✕
                       </button>
@@ -273,49 +279,50 @@ export default function InvoiceForm() {
 
       {/* Notes + Totals */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        <div className="card p-5 space-y-4">
-          <p className="section-label">Notes & VAT</p>
-          <label className="flex items-center gap-2 cursor-pointer">
+
+        <div className="bg-white border border-[#E5DFD6] rounded-2xl p-6 space-y-4">
+          <p className="text-[10px] font-semibold text-[#A39890] uppercase tracking-widest">Notes &amp; VAT</p>
+          <label className="flex items-center gap-2.5 cursor-pointer">
             <input type="checkbox" checked={form.vat_enabled}
               onChange={e => setForm(f => ({ ...f, vat_enabled: e.target.checked }))}
               className="w-4 h-4 accent-[#1A1714]" />
-            <span className="text-sm text-[#1A1714]">Enable VAT</span>
+            <span className="text-sm font-medium text-[#1A1714]">Enable VAT</span>
           </label>
           {form.vat_enabled && (
             <div>
               <label className="label">VAT Rate (%)</label>
-              <input className="input w-28" type="number" min="0" max="100" step="0.01"
+              <input className="input w-32" type="number" min="0" max="100" step="0.01"
                 value={form.vat_rate}
                 onChange={e => setForm(f => ({ ...f, vat_rate: e.target.value }))} />
             </div>
           )}
           <div>
-            <label className="label">Notes (English)</label>
-            <textarea className="input min-h-20" rows={3} value={form.notes_en}
-              onChange={e => setForm(f => ({ ...f, notes_en: e.target.value }))} />
-          </div>
-          <div>
-            <label className="label">Notes (Arabic)</label>
-            <textarea className="input min-h-20" rows={3} dir="rtl" value={form.notes_ar}
-              onChange={e => setForm(f => ({ ...f, notes_ar: e.target.value }))} />
+            <label className="label">Notes</label>
+            <textarea
+              className="input min-h-[80px] resize-none"
+              rows={3}
+              placeholder="Payment terms, additional info…"
+              value={form.notes_en}
+              onChange={e => setForm(f => ({ ...f, notes_en: e.target.value }))}
+            />
           </div>
         </div>
 
-        <div className="card p-5 flex flex-col justify-between">
+        <div className="bg-white border border-[#E5DFD6] rounded-2xl p-6 flex flex-col justify-between">
           <div>
-            <p className="section-label">Summary</p>
-            <div className="space-y-2 text-sm mt-3">
-              <div className="flex justify-between py-2 border-b border-[#F3F0EB]">
+            <p className="text-[10px] font-semibold text-[#A39890] uppercase tracking-widest mb-4">Summary</p>
+            <div className="space-y-1 text-sm">
+              <div className="flex justify-between py-2.5 border-b border-[#F3F0EB]">
                 <span className="text-[#6B6259]">Subtotal</span>
                 <span className="font-medium text-[#1A1714]">AED {fmtAmount(subtotal)}</span>
               </div>
               {form.vat_enabled && (
-                <div className="flex justify-between py-2 border-b border-[#F3F0EB]">
+                <div className="flex justify-between py-2.5 border-b border-[#F3F0EB]">
                   <span className="text-[#6B6259]">VAT ({form.vat_rate}%)</span>
                   <span className="text-[#6B6259]">AED {fmtAmount(vatAmt)}</span>
                 </div>
               )}
-              <div className="flex justify-between py-3 px-4 bg-[#1A1714] text-white rounded-lg mt-2">
+              <div className="flex justify-between py-3 px-4 bg-[#1A1714] text-white rounded-xl mt-3">
                 <span className="font-semibold text-sm">Total Due</span>
                 <span className="font-bold">AED {fmtAmount(total)}</span>
               </div>
@@ -324,7 +331,7 @@ export default function InvoiceForm() {
           <button
             onClick={() => saveMut.mutate()}
             disabled={saveMut.isPending || !canSave}
-            className="btn-primary w-full justify-center py-3 mt-5"
+            className="w-full py-3 bg-[#1A1714] text-white text-sm font-medium rounded-xl hover:bg-[#2C2825] transition-colors disabled:opacity-40 disabled:cursor-not-allowed mt-5"
           >
             {saveMut.isPending ? 'Saving…' : isEdit ? 'Update Invoice' : 'Create Invoice'}
           </button>
