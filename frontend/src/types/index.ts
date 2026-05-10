@@ -115,6 +115,22 @@ export interface MonthlyRevenue {
   amount: number
 }
 
+export interface RecentPayment {
+  id: string
+  invoice_id: string
+  invoice_number: string
+  client_name: string
+  amount: number
+  payment_date: string
+  method: string
+  reference: string
+}
+
+export interface PaymentWithInvoice extends RecentPayment {
+  notes: string
+  created_at: string
+}
+
 export interface DashboardStats {
   total_invoices: number
   draft_count: number
@@ -123,8 +139,10 @@ export interface DashboardStats {
   overdue_count: number
   partially_paid_count: number
   paid_this_month: number
+  total_collected: number
   total_outstanding: number
   monthly_revenue: MonthlyRevenue[]
+  recent_payments: RecentPayment[]
 }
 
 export interface AuthTokens {

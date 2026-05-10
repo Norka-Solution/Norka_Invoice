@@ -12,7 +12,7 @@ from .models import Company, BankDetails, Client, Invoice, InvoiceItem, Payment
 from .serializers import (
     CompanySerializer, BankDetailsSerializer, ClientSerializer,
     InvoiceListSerializer, InvoiceDetailSerializer, InvoiceCreateSerializer,
-    PaymentSerializer,
+    PaymentSerializer, PaymentWithInvoiceSerializer,
 )
 
 
@@ -204,6 +204,10 @@ class DashboardView(APIView):
             .aggregate(s=Sum('amount'))['s'] or 0
         )
 
+        total_collected = float(
+            Payment.objects.aggregate(s=Sum('amount'))['s'] or 0
+        )
+
         total_outstanding = float(
             sum(inv.balance_due for inv in
                 Invoice.objects.filter(status__in=['sent', 'partially_paid', 'overdue'])
@@ -225,6 +229,12 @@ class DashboardView(APIView):
             )
             monthly.append({'month': d.strftime('%b'), 'amount': amt})
 
+        recent_payments = (
+            Payment.objects
+            .select_related('invoice', 'invoice__client')
+            .order_by('-payment_date', '-created_at')[:5]
+        )
+
         return Response({
             'total_invoices':    invoices.count(),
             'draft_count':       invoices.filter(status='draft').count(),
@@ -233,8 +243,10 @@ class DashboardView(APIView):
             'overdue_count':     invoices.filter(status='overdue').count(),
             'partially_paid_count': invoices.filter(status='partially_paid').count(),
             'paid_this_month':   paid_this_month,
+            'total_collected':   total_collected,
             'total_outstanding': total_outstanding,
             'monthly_revenue':   monthly,
+            'recent_payments':   PaymentWithInvoiceSerializer(recent_payments, many=True).data,
         })
 
 
@@ -243,3 +255,15 @@ class ExchangeRateView(APIView):
 
     def get(self, request):
         return Response({'USD': 3.67, 'EUR': 4.01, 'AED': 1.0})
+
+
+class AllPaymentsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        payments = (
+            Payment.objects
+            .select_related('invoice', 'invoice__client')
+            .order_by('-payment_date', '-created_at')
+        )
+        return Response(PaymentWithInvoiceSerializer(payments, many=True).data)

@@ -76,9 +76,10 @@ export const invoicesApi = {
 }
 
 export const paymentsApi = {
-  list:   (invId: string)                      => api.get(`/invoices/${invId}/payments/`),
-  create: (invId: string, data: unknown)       => api.post(`/invoices/${invId}/payments/`, data),
-  delete: (invId: string, pid: string)         => api.delete(`/invoices/${invId}/payments/${pid}/`),
+  list:    (invId: string)               => api.get(`/invoices/${invId}/payments/`),
+  listAll: ()                            => api.get('/payments/'),
+  create:  (invId: string, data: unknown) => api.post(`/invoices/${invId}/payments/`, data),
+  delete:  (invId: string, pid: string)  => api.delete(`/invoices/${invId}/payments/${pid}/`),
 }
 
 export const dashboardApi = {

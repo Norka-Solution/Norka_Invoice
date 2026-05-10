@@ -1,8 +1,15 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { dashboardApi, invoicesApi } from '../api/client'
-import type { DashboardStats, Invoice, MonthlyRevenue, PaginatedResponse } from '../types'
+import type { DashboardStats, Invoice, MonthlyRevenue, PaginatedResponse, RecentPayment } from '../types'
 import { fmtAmount, fmtDate, statusLabel } from '../lib/utils'
+
+const METHOD_LABEL: Record<string, string> = {
+  bank_transfer: 'Bank Transfer',
+  cash:          'Cash',
+  cheque:        'Cheque',
+  other:         'Other',
+}
 
 /* ── Donut chart ─────────────────────────────────────────── */
 interface Seg { count: number; color: string; label: string }
@@ -142,16 +149,16 @@ export default function Dashboard() {
         {[
           { label: 'Collected · ' + now.toLocaleDateString('en-US', { month: 'short' }),
             value: 'AED ' + fmtAmount(stats?.paid_this_month ?? 0),
-            accent: false },
+            accent: false, green: false },
+          { label: 'Total Collected',
+            value: 'AED ' + fmtAmount(stats?.total_collected ?? 0),
+            accent: false, green: true },
           { label: 'Outstanding',
             value: 'AED ' + fmtAmount(stats?.total_outstanding ?? 0),
-            accent: (stats?.total_outstanding ?? 0) > 0 },
+            accent: (stats?.total_outstanding ?? 0) > 0, green: false },
           { label: 'Total Invoices',
             value: String(total),
-            accent: false },
-          { label: 'Paid',
-            value: String(stats?.paid_count ?? 0),
-            accent: false, green: true },
+            accent: false, green: false },
         ].map((m, i) => (
           <div key={i} className="px-5 py-6 first:pl-0 last:pr-0 md:first:pl-0">
             <p className="text-[10px] font-medium text-[#A39890] uppercase tracking-[0.1em] mb-2">{m.label}</p>
@@ -224,6 +231,37 @@ export default function Dashboard() {
         </div>
 
       </div>
+
+      {/* ── Recent payments ── */}
+      {(stats?.recent_payments?.length ?? 0) > 0 && (
+        <div className="py-7 border-b border-[#E5DFD6]">
+          <div className="flex items-center justify-between mb-4">
+            <p className="text-[10px] font-semibold text-[#A39890] uppercase tracking-[0.12em]">Recent Payments</p>
+            <Link to="/payments" className="text-xs text-[#6B6259] hover:text-[#1A1714] transition-colors font-medium">
+              View all →
+            </Link>
+          </div>
+          <div className="space-y-0">
+            {stats!.recent_payments.map((p: RecentPayment) => (
+              <Link
+                key={p.id}
+                to={`/invoices/${p.invoice_id}`}
+                className="flex items-center justify-between py-3 border-b border-[#F3F0EB] last:border-0 hover:bg-white/60 -mx-2 px-2 rounded-lg transition-colors"
+              >
+                <div className="flex items-center gap-3 min-w-0 flex-1">
+                  <span className="text-sm font-semibold text-[#1A1714] shrink-0">{p.invoice_number}</span>
+                  <span className="text-sm text-[#A39890] truncate hidden sm:block">{p.client_name}</span>
+                  <span className="text-xs text-[#CEC8BE] shrink-0 hidden md:block">{METHOD_LABEL[p.method] ?? p.method}</span>
+                </div>
+                <div className="flex items-center gap-5 shrink-0 ml-3">
+                  <span className="text-xs text-[#A39890] hidden md:block tabular-nums">{fmtDate(p.payment_date)}</span>
+                  <span className="text-sm font-bold text-[#3A6B4F] tabular-nums">AED {fmtAmount(p.amount)}</span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* ── Recent invoices — list style, no table ── */}
       <div className="pt-7">

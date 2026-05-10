@@ -2,7 +2,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import (
     CompanyViewSet, BankDetailsViewSet, ClientViewSet,
-    InvoiceViewSet, PaymentViewSet, DashboardView, ExchangeRateView,
+    InvoiceViewSet, PaymentViewSet, DashboardView, ExchangeRateView, AllPaymentsView,
 )
 from .ai_views import AIChatView
 
@@ -26,5 +26,6 @@ urlpatterns = [
     ),
     path('dashboard/',      DashboardView.as_view(),    name='dashboard'),
     path('exchange-rates/', ExchangeRateView.as_view(), name='exchange-rates'),
+    path('payments/',       AllPaymentsView.as_view(),  name='all-payments'),
     path('ai/chat/',        AIChatView.as_view(),       name='ai-chat'),
 ]

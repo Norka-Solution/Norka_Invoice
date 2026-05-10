@@ -2,9 +2,10 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 
 const NAV = [
-  { path: '/',         label: 'Overview'  },
-  { path: '/invoices', label: 'Invoices'  },
-  { path: '/clients',  label: 'Clients'   },
+  { path: '/',          label: 'Overview'  },
+  { path: '/invoices',  label: 'Invoices'  },
+  { path: '/payments',  label: 'Payments'  },
+  { path: '/clients',   label: 'Clients'   },
 ]
 
 function Sidebar({ onClose }: { onClose?: () => void }) {

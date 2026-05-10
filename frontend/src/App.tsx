@@ -9,6 +9,7 @@ import Invoices      from './pages/Invoices'
 import InvoiceDetail from './pages/InvoiceDetail'
 import InvoiceForm   from './pages/InvoiceForm'
 import Clients       from './pages/Clients'
+import Payments      from './pages/Payments'
 import CompanyPage   from './pages/Company'
 
 const queryClient = new QueryClient({
@@ -35,6 +36,7 @@ function AppWithAI() {
         <Route path="/invoices/new"       element={<Guard><InvoiceForm /></Guard>} />
         <Route path="/invoices/:id"       element={<Guard><InvoiceDetail /></Guard>} />
         <Route path="/invoices/:id/edit"  element={<Guard><InvoiceForm /></Guard>} />
+        <Route path="/payments"           element={<Guard><Payments /></Guard>} />
         <Route path="/clients"            element={<Guard><Clients /></Guard>} />
         <Route path="/company"            element={<Guard><CompanyPage /></Guard>} />
         <Route path="*"                   element={<Navigate to="/" replace />} />

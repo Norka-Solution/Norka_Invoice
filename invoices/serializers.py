@@ -62,6 +62,17 @@ class PaymentSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'invoice', 'created_at']
 
 
+class PaymentWithInvoiceSerializer(serializers.ModelSerializer):
+    invoice_id     = serializers.UUIDField(source='invoice.id', read_only=True)
+    invoice_number = serializers.CharField(source='invoice.invoice_number', read_only=True)
+    client_name    = serializers.CharField(source='invoice.client.name_en', read_only=True)
+
+    class Meta:
+        model = Payment
+        fields = ['id', 'invoice_id', 'invoice_number', 'client_name',
+                  'amount', 'payment_date', 'method', 'reference', 'notes', 'created_at']
+
+
 class InvoiceListSerializer(serializers.ModelSerializer):
     client_name = serializers.CharField(source='client.name_en', read_only=True)
     total_aed   = serializers.DecimalField(max_digits=12, decimal_places=2, read_only=True)
