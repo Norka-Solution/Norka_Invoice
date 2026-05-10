@@ -10,12 +10,32 @@ class BankDetailsSerializer(serializers.ModelSerializer):
 
 
 class CompanySerializer(serializers.ModelSerializer):
-    bank_accounts = BankDetailsSerializer(many=True, read_only=True)
+    bank_accounts = BankDetailsSerializer(many=True, required=False)
 
     class Meta:
         model = Company
         fields = '__all__'
         read_only_fields = ['id', 'created_at']
+
+    def _save_banks(self, company, banks_data):
+        company.bank_accounts.all().delete()
+        for bd in banks_data:
+            bd.pop('id', None)
+            bd.pop('company', None)
+            BankDetails.objects.create(company=company, **bd)
+
+    def create(self, validated_data):
+        banks_data = validated_data.pop('bank_accounts', [])
+        company = super().create(validated_data)
+        self._save_banks(company, banks_data)
+        return company
+
+    def update(self, instance, validated_data):
+        banks_data = validated_data.pop('bank_accounts', None)
+        instance = super().update(instance, validated_data)
+        if banks_data is not None:
+            self._save_banks(instance, banks_data)
+        return instance
 
 
 class ClientSerializer(serializers.ModelSerializer):
