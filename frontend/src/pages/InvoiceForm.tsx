@@ -89,8 +89,10 @@ export default function InvoiceForm() {
       const payload = {
         ...form,
         vat_rate:     parseFloat(form.vat_rate),
-        period_start: form.period_start || null,
-        period_end:   form.period_end   || null,
+        period_start: form.period_start  || null,
+        period_end:   form.period_end    || null,
+        bank_details: form.bank_details  || null,
+        company:      form.company       || null,
         items,
       }
       return isEdit ? invoicesApi.update(id!, payload) : invoicesApi.create(payload)

@@ -94,7 +94,10 @@ class InvoiceDetailSerializer(serializers.ModelSerializer):
 
 
 class InvoiceCreateSerializer(serializers.ModelSerializer):
-    items = InvoiceItemSerializer(many=True)
+    items        = InvoiceItemSerializer(many=True)
+    bank_details = serializers.PrimaryKeyRelatedField(
+        queryset=BankDetails.objects.all(), allow_null=True, required=False
+    )
 
     class Meta:
         model = Invoice
