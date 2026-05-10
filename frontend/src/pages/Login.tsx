@@ -30,8 +30,8 @@ export default function Login() {
       <div className="w-full max-w-sm">
         {/* Header */}
         <div className="text-center mb-10">
-          <div className="inline-flex items-center justify-center w-12 h-12 bg-[#1A1714] rounded-xl mb-5">
-            <span className="text-white font-bold text-lg">N</span>
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-xl mb-5 overflow-hidden bg-[#F8F5F0] border border-[#E5DFD6]">
+            <img src="/android-chrome-192x192.png" alt="NORKA" className="w-full h-full object-contain" />
           </div>
           <h1 className="text-xl font-bold text-[#1A1714] tracking-wide">NORKA Solution</h1>
           <p className="text-sm text-[#A39890] mt-1">Invoice Management</p>

@@ -82,9 +82,9 @@ export default function InvoicePrint({ invoice }: Props) {
           <div style={{
             width: 64, height: 64, border: '1.5px solid #E5DFD6', borderRadius: 10,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: '#F8F5F0', flexShrink: 0,
+            background: '#F8F5F0', flexShrink: 0, overflow: 'hidden',
           }}>
-            <span style={{ fontSize: 28, fontWeight: 900, color: '#1A1714' }}>N</span>
+            <img src="/android-chrome-192x192.png" alt="NORKA" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
           </div>
           <div style={{ paddingTop: 6 }}>
             <div style={{ fontSize: 17, fontWeight: 900, color: '#1A1714', letterSpacing: 0.3 }}>NORKA SOLUTION</div>

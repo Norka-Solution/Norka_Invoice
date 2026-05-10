@@ -10,6 +10,7 @@ from decouple import config
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
 
 from .models import Company, BankDetails, Client, Invoice, InvoiceItem, Payment
 
@@ -652,6 +653,8 @@ NORKA SOLUTION context:
 # ── Main AI view ──────────────────────────────────────────────────────────────
 
 class AIChatView(APIView):
+    permission_classes = [IsAuthenticated]
+
     def post(self, request):
         if not ANTHROPIC_AVAILABLE:
             return Response(

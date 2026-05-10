@@ -21,9 +21,14 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const sidebar = (
     <div className="flex flex-col h-full">
       {/* Brand */}
-      <div className="px-6 pt-7 pb-6">
-        <div className="text-[#1A1714] font-bold text-base tracking-wide">NORKA</div>
-        <div className="text-[#A39890] text-xs mt-0.5">Invoice System</div>
+      <div className="px-4 pt-6 pb-5 flex items-center gap-3">
+        <div className="w-9 h-9 rounded-lg overflow-hidden bg-[#F8F5F0] border border-[#E5DFD6] flex-shrink-0">
+          <img src="/android-chrome-192x192.png" alt="NORKA" className="w-full h-full object-contain" />
+        </div>
+        <div>
+          <div className="text-[#1A1714] font-bold text-sm tracking-wide leading-tight">NORKA</div>
+          <div className="text-[#A39890] text-[10px]">Invoice System</div>
+        </div>
       </div>
 
       <div className="mx-6 border-t border-[#E5DFD6]" />
