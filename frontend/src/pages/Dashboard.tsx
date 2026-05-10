@@ -4,63 +4,78 @@ import { dashboardApi, invoicesApi } from '../api/client'
 import type { DashboardStats, Invoice, MonthlyRevenue, PaginatedResponse } from '../types'
 import { fmtAmount, fmtDate, statusLabel } from '../lib/utils'
 
-function RevenueChart({ data }: { data: MonthlyRevenue[] }) {
-  if (!data || data.length === 0) return null
-  const max = Math.max(...data.map(d => d.amount), 1)
-  const barW = 32
-  const totalW = data.length * (barW + 16) - 16
-  const chartH = 96
+/* ── Donut chart ─────────────────────────────────────────── */
+interface Seg { count: number; color: string; label: string }
+
+function Donut({ total, segs }: { total: number; segs: Seg[] }) {
+  const cx = 58, cy = 58, r = 44, sw = 12
+  const C = 2 * Math.PI * r
+  let cum = 0
+
+  if (!total) return (
+    <svg width="116" height="116" viewBox="0 0 116 116">
+      <circle cx={cx} cy={cy} r={r} fill="none" stroke="#E5DFD6" strokeWidth={sw} />
+      <text x={cx} y={cy} textAnchor="middle" dominantBaseline="middle" fontSize="11" fill="#CEC8BE" fontFamily="system-ui">—</text>
+    </svg>
+  )
 
   return (
-    <svg viewBox={`0 0 ${totalW} ${chartH + 28}`} className="w-full" preserveAspectRatio="xMidYMid meet">
-      {data.map((d, i) => {
-        const barH = Math.max((d.amount / max) * chartH, d.amount > 0 ? 4 : 2)
-        const x = i * (barW + 16)
-        const y = chartH - barH
-        const isLast = i === data.length - 1
+    <svg width="116" height="116" viewBox="0 0 116 116">
+      <circle cx={cx} cy={cy} r={r} fill="none" stroke="#EDE8E3" strokeWidth={sw} />
+      {segs.map((s, i) => {
+        if (!s.count) return null
+        const pct  = s.count / total
+        const dash = pct * C
+        const angle = cum * 360 - 90
+        cum += pct
         return (
-          <g key={`${d.month}-${i}`}>
-            <rect
-              x={x} y={y} width={barW} height={barH}
-              rx={5}
-              fill={isLast ? '#1A1714' : '#D4CFC9'}
-            />
-            {d.amount > 0 && (
-              <text
-                x={x + barW / 2} y={y - 5}
-                textAnchor="middle" fontSize="8.5" fill={isLast ? '#1A1714' : '#A39890'}
-                fontFamily="system-ui, -apple-system, sans-serif" fontWeight={isLast ? '600' : '400'}
-              >
-                {d.amount >= 1000 ? `${(d.amount / 1000).toFixed(0)}k` : d.amount.toFixed(0)}
-              </text>
-            )}
-            <text
-              x={x + barW / 2} y={chartH + 18}
-              textAnchor="middle" fontSize="10" fill={isLast ? '#1A1714' : '#A39890'}
-              fontFamily="system-ui, -apple-system, sans-serif" fontWeight={isLast ? '600' : '400'}
-            >
-              {d.month}
-            </text>
-          </g>
+          <circle key={i} cx={cx} cy={cy} r={r} fill="none"
+            stroke={s.color} strokeWidth={sw}
+            strokeDasharray={`${dash} ${C - dash}`}
+            transform={`rotate(${angle},${cx},${cy})`}
+            strokeLinecap="butt"
+          />
         )
       })}
+      <text x={cx} y={cy - 7} textAnchor="middle" fontSize="20" fontWeight="700" fill="#1A1714" fontFamily="system-ui, -apple-system">
+        {total}
+      </text>
+      <text x={cx} y={cy + 11} textAnchor="middle" fontSize="9" fill="#A39890" fontFamily="system-ui, -apple-system" letterSpacing="0.08em">
+        TOTAL
+      </text>
     </svg>
   )
 }
 
-function StatusBar({ label, count, total, color }: { label: string; count: number; total: number; color: string }) {
-  const pct = total > 0 ? (count / total) * 100 : 0
+/* ── Horizontal revenue bars ─────────────────────────────── */
+function RevBars({ data }: { data: MonthlyRevenue[] }) {
+  if (!data?.length) return null
+  const max = Math.max(...data.map(d => d.amount), 1)
   return (
-    <div className="flex items-center gap-3">
-      <div className="w-20 text-xs text-[#6B6259] shrink-0">{label}</div>
-      <div className="flex-1 h-1.5 bg-[#EDE8E3] rounded-full overflow-hidden">
-        <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, backgroundColor: color }} />
-      </div>
-      <div className="w-6 text-xs font-semibold text-[#1A1714] text-right shrink-0">{count}</div>
+    <div className="space-y-3">
+      {data.map((d, i) => {
+        const isLast = i === data.length - 1
+        const pct = (d.amount / max) * 100
+        return (
+          <div key={i} className="flex items-center gap-3">
+            <span className="w-7 text-[10px] text-[#A39890] text-right shrink-0 font-medium">{d.month}</span>
+            <div className="flex-1 h-[5px] bg-[#EDE8E3] rounded-full overflow-hidden">
+              <div
+                className="h-full rounded-full"
+                style={{ width: `${pct || 0.5}%`, backgroundColor: isLast ? '#1A1714' : '#B0A89E' }}
+              />
+            </div>
+            <span className={`text-xs w-16 text-right shrink-0 tabular-nums ${isLast ? 'text-[#1A1714] font-semibold' : 'text-[#A39890]'}`}>
+              {d.amount > 0 ? `${(d.amount / 1000).toFixed(1)}k` : '—'}
+            </span>
+          </div>
+        )
+      })}
     </div>
   )
 }
 
+/* ── Main ────────────────────────────────────────────────── */
 export default function Dashboard() {
   const { data: stats, isLoading } = useQuery<DashboardStats>({
     queryKey: ['dashboard'],
@@ -73,25 +88,34 @@ export default function Dashboard() {
     staleTime: 60_000,
   })
 
-  const recentInvoices = recent?.results?.slice(0, 6) ?? []
+  const recentInvoices = recent?.results?.slice(0, 7) ?? []
   const total = stats?.total_invoices ?? 0
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="spinner" />
-      </div>
-    )
-  }
+  const segs: Seg[] = [
+    { count: stats?.paid_count            ?? 0, color: '#3A6B4F', label: 'Paid'    },
+    { count: stats?.sent_count            ?? 0, color: '#4A6B8B', label: 'Sent'    },
+    { count: stats?.partially_paid_count  ?? 0, color: '#8B7A3A', label: 'Partial' },
+    { count: stats?.overdue_count         ?? 0, color: '#8B3A3A', label: 'Overdue' },
+    { count: stats?.draft_count           ?? 0, color: '#CEC8BE', label: 'Draft'   },
+  ]
+
+  const now = new Date()
+  const monthYear = now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+
+  if (isLoading) return (
+    <div className="flex items-center justify-center h-64">
+      <div className="spinner" />
+    </div>
+  )
 
   return (
-    <div className="space-y-5">
+    <div className="max-w-4xl space-y-0">
 
-      {/* Header */}
-      <div className="flex items-center justify-between">
+      {/* ── Header ── */}
+      <div className="flex items-start justify-between pb-7">
         <div>
-          <h1 className="text-xl font-bold text-[#1A1714] tracking-tight">Overview</h1>
-          <p className="text-xs text-[#A39890] mt-0.5">NORKA Solution</p>
+          <p className="text-[10px] font-semibold text-[#A39890] uppercase tracking-[0.14em] mb-1">Overview</p>
+          <h1 className="text-2xl font-bold text-[#1A1714] tracking-tight">{monthYear}</h1>
         </div>
         <Link
           to="/invoices/new"
@@ -101,9 +125,9 @@ export default function Dashboard() {
         </Link>
       </div>
 
-      {/* Overdue alert */}
+      {/* ── Overdue alert ── */}
       {(stats?.overdue_count ?? 0) > 0 && (
-        <div className="bg-[#FDF5F0] border border-[#E8D5C8] rounded-xl px-4 py-3 flex items-center justify-between">
+        <div className="mb-6 flex items-center justify-between bg-[#FDF5F0] border border-[#E8D5C8] rounded-xl px-4 py-3">
           <span className="text-sm text-[#8B3A3A] font-medium">
             {stats!.overdue_count} overdue invoice{stats!.overdue_count > 1 ? 's' : ''} — action required
           </span>
@@ -113,104 +137,105 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-
-        {/* Collected - hero card */}
-        <div className="col-span-2 lg:col-span-1 bg-[#1A1714] rounded-2xl p-5 flex flex-col justify-between min-h-[120px]">
-          <p className="text-[10px] text-white/40 uppercase tracking-[0.12em] font-medium">Collected · This Month</p>
-          <div>
-            <p className="text-2xl font-bold text-white mt-2 leading-none">
-              {fmtAmount(stats?.paid_this_month ?? 0)}
+      {/* ── Hero metrics — no boxes, just numbers ── */}
+      <div className="grid grid-cols-2 md:grid-cols-4 border-t border-b border-[#E5DFD6] divide-x divide-[#E5DFD6]">
+        {[
+          { label: 'Collected · ' + now.toLocaleDateString('en-US', { month: 'short' }),
+            value: 'AED ' + fmtAmount(stats?.paid_this_month ?? 0),
+            accent: false },
+          { label: 'Outstanding',
+            value: 'AED ' + fmtAmount(stats?.total_outstanding ?? 0),
+            accent: (stats?.total_outstanding ?? 0) > 0 },
+          { label: 'Total Invoices',
+            value: String(total),
+            accent: false },
+          { label: 'Paid',
+            value: String(stats?.paid_count ?? 0),
+            accent: false, green: true },
+        ].map((m, i) => (
+          <div key={i} className="px-5 py-6 first:pl-0 last:pr-0 md:first:pl-0">
+            <p className="text-[10px] font-medium text-[#A39890] uppercase tracking-[0.1em] mb-2">{m.label}</p>
+            <p className={`text-2xl font-bold tracking-tight ${m.green ? 'text-[#3A6B4F]' : m.accent ? 'text-[#8B3A3A]' : 'text-[#1A1714]'}`}>
+              {m.value}
             </p>
-            <p className="text-[10px] text-white/30 mt-1.5">AED</p>
+          </div>
+        ))}
+      </div>
+
+      {/* ── Status mix bar ── */}
+      {total > 0 && (
+        <div className="py-6 border-b border-[#E5DFD6]">
+          <div className="flex h-1.5 rounded-full overflow-hidden gap-px">
+            {segs.map((s, i) => s.count > 0 && (
+              <div key={i} style={{ width: `${(s.count / total) * 100}%`, backgroundColor: s.color }} />
+            ))}
+          </div>
+          <div className="flex flex-wrap gap-x-5 gap-y-1.5 mt-3">
+            {segs.map((s, i) => s.count > 0 && (
+              <div key={i} className="flex items-center gap-1.5">
+                <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: s.color }} />
+                <span className="text-xs text-[#6B6259]">{s.label}</span>
+                <span className="text-xs font-semibold text-[#1A1714]">{s.count}</span>
+                <span className="text-[10px] text-[#A39890]">· {Math.round((s.count / total) * 100)}%</span>
+              </div>
+            ))}
           </div>
         </div>
+      )}
 
-        {/* Outstanding */}
-        <div className="bg-white border border-[#E5DFD6] rounded-2xl p-5 flex flex-col justify-between min-h-[120px]">
-          <p className="text-[10px] text-[#A39890] uppercase tracking-[0.12em] font-medium">Outstanding</p>
-          <div>
-            <p className="text-2xl font-bold text-[#1A1714] mt-2 leading-none">
-              {fmtAmount(stats?.total_outstanding ?? 0)}
-            </p>
-            <p className="text-[10px] text-[#A39890] mt-1.5">AED</p>
-          </div>
+      {/* ── Revenue + Donut ── */}
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-10 py-8 border-b border-[#E5DFD6]">
+
+        {/* Revenue bars */}
+        <div className="md:col-span-3">
+          <p className="text-[10px] font-semibold text-[#A39890] uppercase tracking-[0.12em] mb-5">
+            Revenue · Last 6 Months · AED
+          </p>
+          {stats?.monthly_revenue?.length
+            ? <RevBars data={stats.monthly_revenue} />
+            : <p className="text-xs text-[#CEC8BE] py-4">No revenue data yet</p>
+          }
         </div>
 
-        {/* Total invoices */}
-        <div className="bg-white border border-[#E5DFD6] rounded-2xl p-5 flex flex-col justify-between min-h-[120px]">
-          <p className="text-[10px] text-[#A39890] uppercase tracking-[0.12em] font-medium">Total Invoices</p>
-          <div>
-            <p className="text-2xl font-bold text-[#1A1714] mt-2 leading-none">{total}</p>
-            <p className="text-[10px] text-[#A39890] mt-1.5">{stats?.draft_count ?? 0} drafts</p>
-          </div>
-        </div>
-
-        {/* Paid */}
-        <div className="bg-white border border-[#E5DFD6] rounded-2xl p-5 flex flex-col justify-between min-h-[120px]">
-          <p className="text-[10px] text-[#A39890] uppercase tracking-[0.12em] font-medium">Paid</p>
-          <div>
-            <p className="text-2xl font-bold text-[#3A6B4F] mt-2 leading-none">{stats?.paid_count ?? 0}</p>
-            <p className="text-[10px] text-[#A39890] mt-1.5">invoices</p>
+        {/* Donut + legend */}
+        <div className="md:col-span-2">
+          <p className="text-[10px] font-semibold text-[#A39890] uppercase tracking-[0.12em] mb-5">
+            Invoice Mix
+          </p>
+          <div className="flex items-center gap-6">
+            <Donut total={total} segs={segs} />
+            <div className="space-y-2.5 flex-1 min-w-0">
+              {segs.map((s, i) => {
+                const pct = total ? Math.round((s.count / total) * 100) : 0
+                return (
+                  <div key={i} className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: s.color }} />
+                      <span className="text-xs text-[#6B6259] truncate">{s.label}</span>
+                    </div>
+                    <span className="text-xs font-semibold text-[#1A1714] tabular-nums shrink-0">
+                      {pct}%
+                    </span>
+                  </div>
+                )
+              })}
+            </div>
           </div>
         </div>
 
       </div>
 
-      {/* Charts row */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-3">
-
-        {/* Revenue bar chart */}
-        <div className="lg:col-span-3 bg-white border border-[#E5DFD6] rounded-2xl p-5">
-          <div className="flex items-center justify-between mb-5">
-            <div>
-              <h2 className="text-sm font-semibold text-[#1A1714]">Revenue</h2>
-              <p className="text-xs text-[#A39890] mt-0.5">Last 6 months · AED</p>
-            </div>
-          </div>
-          {stats?.monthly_revenue && stats.monthly_revenue.length > 0 ? (
-            <div className="px-1">
-              <RevenueChart data={stats.monthly_revenue} />
-            </div>
-          ) : (
-            <div className="h-32 flex items-center justify-center text-xs text-[#C4BDB7]">
-              No revenue data yet
-            </div>
-          )}
-        </div>
-
-        {/* Status breakdown */}
-        <div className="lg:col-span-2 bg-white border border-[#E5DFD6] rounded-2xl p-5">
-          <h2 className="text-sm font-semibold text-[#1A1714] mb-1">By Status</h2>
-          <p className="text-xs text-[#A39890] mb-5">{total} total invoices</p>
-
-          {total === 0 ? (
-            <div className="flex items-center justify-center h-24 text-xs text-[#C4BDB7]">No invoices yet</div>
-          ) : (
-            <div className="space-y-3.5">
-              <StatusBar label="Paid"     count={stats?.paid_count ?? 0}           total={total} color="#3A6B4F" />
-              <StatusBar label="Sent"     count={stats?.sent_count ?? 0}           total={total} color="#4A6B8B" />
-              <StatusBar label="Partial"  count={stats?.partially_paid_count ?? 0} total={total} color="#8B7A3A" />
-              <StatusBar label="Draft"    count={stats?.draft_count ?? 0}          total={total} color="#A39890" />
-              <StatusBar label="Overdue"  count={stats?.overdue_count ?? 0}        total={total} color="#8B3A3A" />
-            </div>
-          )}
-        </div>
-
-      </div>
-
-      {/* Recent invoices */}
-      <div className="bg-white border border-[#E5DFD6] rounded-2xl overflow-hidden">
-        <div className="px-5 py-4 border-b border-[#E5DFD6] flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-[#1A1714]">Recent Invoices</h2>
-          <Link to="/invoices" className="text-xs text-[#6B6259] hover:text-[#1A1714] transition-colors">
+      {/* ── Recent invoices — list style, no table ── */}
+      <div className="pt-7">
+        <div className="flex items-center justify-between mb-4">
+          <p className="text-[10px] font-semibold text-[#A39890] uppercase tracking-[0.12em]">Recent Invoices</p>
+          <Link to="/invoices" className="text-xs text-[#6B6259] hover:text-[#1A1714] transition-colors font-medium">
             View all →
           </Link>
         </div>
 
         {recentInvoices.length === 0 ? (
-          <div className="px-5 py-12 text-center">
+          <div className="py-10 text-center">
             <p className="text-sm text-[#A39890] mb-4">No invoices yet</p>
             <Link
               to="/invoices/new"
@@ -220,39 +245,28 @@ export default function Dashboard() {
             </Link>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[560px]">
-              <thead>
-                <tr className="border-b border-[#F3F0EB]">
-                  <th className="px-5 py-3 text-left text-[10px] font-semibold text-[#A39890] uppercase tracking-wider">Invoice</th>
-                  <th className="px-5 py-3 text-left text-[10px] font-semibold text-[#A39890] uppercase tracking-wider">Client</th>
-                  <th className="px-5 py-3 text-left text-[10px] font-semibold text-[#A39890] uppercase tracking-wider">Status</th>
-                  <th className="px-5 py-3 text-left text-[10px] font-semibold text-[#A39890] uppercase tracking-wider">Due</th>
-                  <th className="px-5 py-3 text-right text-[10px] font-semibold text-[#A39890] uppercase tracking-wider">Amount</th>
-                </tr>
-              </thead>
-              <tbody>
-                {recentInvoices.map((inv, i) => (
-                  <tr key={inv.id} className={`border-b border-[#F3F0EB] last:border-0 hover:bg-[#FAFAF9] transition-colors ${i % 2 === 0 ? '' : ''}`}>
-                    <td className="px-5 py-3.5">
-                      <Link to={`/invoices/${inv.id}`} className="text-sm font-semibold text-[#1A1714] hover:underline">
-                        {inv.invoice_number}
-                      </Link>
-                    </td>
-                    <td className="px-5 py-3.5 text-sm text-[#6B6259]">{inv.client_name}</td>
-                    <td className="px-5 py-3.5">
-                      <span className={`badge-${inv.status}`}>{statusLabel(inv.status)}</span>
-                    </td>
-                    <td className={`px-5 py-3.5 text-sm ${inv.status === 'overdue' ? 'text-[#8B3A3A] font-medium' : 'text-[#A39890]'}`}>
-                      {fmtDate(inv.due_date)}
-                    </td>
-                    <td className="px-5 py-3.5 text-right text-sm font-semibold text-[#1A1714]">
-                      AED {fmtAmount(inv.total_aed)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="space-y-0">
+            {recentInvoices.map(inv => (
+              <Link
+                key={inv.id}
+                to={`/invoices/${inv.id}`}
+                className="flex items-center justify-between py-3 border-b border-[#F3F0EB] last:border-0 hover:bg-white/60 -mx-2 px-2 rounded-lg transition-colors group"
+              >
+                <div className="flex items-center gap-3 min-w-0 flex-1">
+                  <span className={`badge-${inv.status} shrink-0`}>{statusLabel(inv.status)}</span>
+                  <span className="text-sm font-semibold text-[#1A1714] shrink-0">{inv.invoice_number}</span>
+                  <span className="text-sm text-[#A39890] truncate hidden sm:block">{inv.client_name}</span>
+                </div>
+                <div className="flex items-center gap-5 shrink-0 ml-3">
+                  <span className={`text-xs tabular-nums hidden md:block ${inv.status === 'overdue' ? 'text-[#8B3A3A] font-medium' : 'text-[#A39890]'}`}>
+                    {fmtDate(inv.due_date)}
+                  </span>
+                  <span className="text-sm font-semibold text-[#1A1714] tabular-nums">
+                    AED {fmtAmount(inv.total_aed)}
+                  </span>
+                </div>
+              </Link>
+            ))}
           </div>
         )}
       </div>

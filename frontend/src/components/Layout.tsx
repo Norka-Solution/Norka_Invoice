@@ -5,12 +5,11 @@ const NAV = [
   { path: '/',         label: 'Overview'  },
   { path: '/invoices', label: 'Invoices'  },
   { path: '/clients',  label: 'Clients'   },
-  { path: '/company',  label: 'Company'   },
 ]
 
 function Sidebar({ onClose }: { onClose?: () => void }) {
-  const location  = useLocation()
-  const navigate  = useNavigate()
+  const location = useLocation()
+  const navigate = useNavigate()
 
   function logout() {
     localStorage.clear()
@@ -19,6 +18,7 @@ function Sidebar({ onClose }: { onClose?: () => void }) {
 
   return (
     <div className="flex flex-col h-full">
+
       {/* Logo */}
       <div className="px-4 h-14 flex items-center border-b border-[#E5DFD6] flex-shrink-0">
         <Link to="/" onClick={onClose} className="flex items-center gap-2.5">
@@ -29,8 +29,8 @@ function Sidebar({ onClose }: { onClose?: () => void }) {
         </Link>
       </div>
 
-      {/* Nav */}
-      <nav className="flex-1 px-2 py-3 overflow-y-auto">
+      {/* Primary nav */}
+      <nav className="flex-1 px-2 py-4 overflow-y-auto">
         <div className="space-y-0.5">
           {NAV.map(({ path, label }) => {
             const active = path === '/' ? location.pathname === '/' : location.pathname.startsWith(path)
@@ -54,8 +54,21 @@ function Sidebar({ onClose }: { onClose?: () => void }) {
         </div>
       </nav>
 
-      {/* Bottom */}
-      <div className="px-2 py-3 border-t border-[#E5DFD6] flex-shrink-0">
+      {/* Bottom: Settings + Sign out */}
+      <div className="px-2 pb-4 space-y-0.5 border-t border-[#E5DFD6] pt-3 flex-shrink-0">
+        <Link
+          to="/company"
+          onClick={onClose}
+          className={`
+            flex items-center px-3 h-9 rounded-lg text-sm font-medium transition-all duration-100 select-none
+            ${location.pathname.startsWith('/company')
+              ? 'bg-[#1A1714] text-white'
+              : 'text-[#A39890] hover:bg-[#F3F0EB] hover:text-[#1A1714]'
+            }
+          `}
+        >
+          Settings
+        </Link>
         <button
           onClick={logout}
           className="flex items-center w-full px-3 h-9 rounded-lg text-sm font-medium text-[#A39890] hover:bg-[#F3F0EB] hover:text-[#1A1714] transition-colors"
@@ -63,6 +76,7 @@ function Sidebar({ onClose }: { onClose?: () => void }) {
           Sign out
         </button>
       </div>
+
     </div>
   )
 }
@@ -81,14 +95,12 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         />
       )}
 
-      {/* Sidebar — desktop fixed / mobile drawer */}
-      <aside
-        className={`
-          fixed top-0 left-0 h-full w-[220px] bg-white border-r border-[#E5DFD6] z-50
-          transition-transform duration-200 ease-out
-          ${mobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
-        `}
-      >
+      {/* Sidebar */}
+      <aside className={`
+        fixed top-0 left-0 h-full w-[220px] bg-white border-r border-[#E5DFD6] z-50
+        transition-transform duration-200 ease-out
+        ${mobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+      `}>
         <Sidebar onClose={() => setMobileOpen(false)} />
       </aside>
 
