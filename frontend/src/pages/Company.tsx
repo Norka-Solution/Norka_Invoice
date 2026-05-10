@@ -76,7 +76,7 @@ export default function CompanyPage() {
     : null
 
   return (
-    <div className="max-w-2xl space-y-5">
+    <div className="space-y-5">
 
       {/* Header */}
       <div className="flex items-center justify-between">
