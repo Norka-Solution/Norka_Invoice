@@ -108,11 +108,7 @@ class InvoiceCreateSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         items_data = validated_data.pop('items')
-        request = self.context.get('request')
-        invoice = Invoice.objects.create(
-            created_by=request.user if request else None,
-            **validated_data
-        )
+        invoice = Invoice.objects.create(**validated_data)
         for i, item_data in enumerate(items_data):
             item_data['sort_order'] = i
             InvoiceItem.objects.create(invoice=invoice, **item_data)
